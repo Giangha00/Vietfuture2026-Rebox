@@ -5,6 +5,15 @@ import Icon from "@/components/ui/Icon";
 import { ROUTES } from "@/lib/routes";
 
 export default function SellerCard({ seller }) {
+  const rating =
+    typeof seller?.rating === "number" && Number.isFinite(seller.rating)
+      ? seller.rating
+      : null;
+  const trades =
+    typeof seller?.trades === "number" && Number.isFinite(seller.trades)
+      ? seller.trades
+      : null;
+
   return (
     <div className="flex items-center justify-between gap-3 rounded-2xl border border-rb-border bg-white p-4">
       <div className="flex items-center gap-3">
@@ -21,7 +30,7 @@ export default function SellerCard({ seller }) {
           <p className="font-semibold text-rb-ink">{seller.name}</p>
           <p className="inline-flex items-center gap-1 text-sm text-rb-muted">
             <Icon name="star" className="size-3.5 text-amber-500" />
-            {seller.rating} ({seller.trades} trades)
+            {rating !== null ? `${rating} (${trades ?? 0} trades)` : "Rating —"}
           </p>
         </div>
       </div>

@@ -9,6 +9,10 @@ import { ROUTES } from "@/lib/routes";
 
 export function ListingCard({ listing }) {
   const inEscrow = listing.status === "escrow";
+  const autoReleaseHours =
+    typeof listing.autoReleaseHours === "number"
+      ? listing.autoReleaseHours
+      : null;
 
   return (
     <article className="overflow-hidden rounded-2xl border border-rb-border bg-white">
@@ -45,13 +49,18 @@ export function ListingCard({ listing }) {
           <div>
             <div className="mb-1 flex justify-between text-xs text-rb-muted">
               <span>Auto-release</span>
-              <span>{listing.autoReleaseHours}h left</span>
+              <span>
+                {autoReleaseHours !== null ? `${autoReleaseHours}h left` : "—"}
+              </span>
             </div>
             <div className="mb-3 h-1.5 rounded-full bg-stone-100">
               <div
                 className="h-full rounded-full bg-sky-500"
                 style={{
-                  width: `${Math.max(10, 100 - listing.autoReleaseHours * 2)}%`,
+                  width:
+                    autoReleaseHours !== null
+                      ? `${Math.max(10, 100 - autoReleaseHours * 2)}%`
+                      : "30%",
                 }}
               />
             </div>

@@ -9,36 +9,36 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
-import { CURRENT_USER } from "@/lib/mock-data";
 import { ROUTES } from "@/lib/routes";
 import LoginRequiredModal from "@/components/auth/LoginRequiredModal";
-import { AUTH_STORAGE_KEY, LOGIN_REASONS } from "@/lib/auth";
+import { LOGIN_REASONS } from "@/lib/auth";
+import {
+  backendFetchMe,
+  backendLogin,
+  backendRegister,
+  backendUpdateMe,
+} from "@/lib/rebox-backend-api";
+import { normalizeBackendUser } from "@/lib/normalize-backend";
 
 const AuthContext = createContext(null);
 
-function readStoredUser() {
+const TOKEN_STORAGE_KEY = "rebox_backend_token";
+
+function readStoredToken() {
   if (typeof window === "undefined") return null;
 
   try {
-    const raw = window.localStorage.getItem(AUTH_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
+    return window.localStorage.getItem(TOKEN_STORAGE_KEY);
   } catch {
     return null;
   }
-}
-
-export function createAuthUser({ name, email } = {}) {
-  return {
-    ...CURRENT_USER,
-    ...(name ? { name } : {}),
-    ...(email ? { email } : {}),
-  };
 }
 
 export function AuthProvider({ children }) {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false);
+  const [token, setToken] = useState(null);
   const [loginModal, setLoginModal] = useState({
     open: false,
     reason: LOGIN_REASONS.default,
@@ -46,20 +46,65 @@ export function AuthProvider({ children }) {
   });
 
   useEffect(() => {
-    setUser(readStoredUser());
-    setReady(true);
+    const storedToken = readStoredToken();
+    if (!storedToken) {
+      setReady(true);
+      return;
+    }
+
+    setToken(storedToken);
+    backendFetchMe(storedToken)
+      .then((u) => setUser(normalizeBackendUser(u)))
+      .catch(() => {
+        window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+        setToken(null);
+        setUser(null);
+      })
+      .finally(() => setReady(true));
   }, []);
 
-  const login = useCallback((userData) => {
-    const nextUser = createAuthUser(userData);
-    window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(nextUser));
-    setUser(nextUser);
-    return nextUser;
+  const saveToken = useCallback((nextToken) => {
+    setToken(nextToken);
+    window.localStorage.setItem(TOKEN_STORAGE_KEY, nextToken);
   }, []);
 
-  const logout = useCallback(() => {
-    window.localStorage.removeItem(AUTH_STORAGE_KEY);
+  const login = useCallback(
+    async ({ email, password }) => {
+      const result = await backendLogin({ email, password });
+      saveToken(result.token);
+      const normalized = normalizeBackendUser(result.user);
+      setUser(normalized);
+      return normalized;
+    },
+    [saveToken],
+  );
+
+  const register = useCallback(
+    async ({ fullName, email, phone, password }) => {
+      const result = await backendRegister({ fullName, email, phone, password });
+      saveToken(result.token);
+      const normalized = normalizeBackendUser(result.user);
+      setUser(normalized);
+      return normalized;
+    },
+    [saveToken],
+  );
+
+  const updateProfile = useCallback(
+    async (payload) => {
+      if (!token) throw new Error("You must be logged in.");
+      const updated = await backendUpdateMe({ token, ...payload });
+      const normalized = normalizeBackendUser(updated);
+      setUser(normalized);
+      return normalized;
+    },
+    [token],
+  );
+
+  const logout = useCallback(async () => {
+    window.localStorage.removeItem(TOKEN_STORAGE_KEY);
     setUser(null);
+    setToken(null);
     router.push(ROUTES.home);
   }, [router]);
 
@@ -100,9 +145,12 @@ export function AuthProvider({ children }) {
   const value = useMemo(
     () => ({
       user,
+      token,
       ready,
       isAuthenticated: Boolean(user),
       login,
+      register,
+      updateProfile,
       logout,
       requireAuth,
       navigateWithAuth,
@@ -112,10 +160,13 @@ export function AuthProvider({ children }) {
     [
       closeLoginModal,
       login,
+      register,
+      updateProfile,
       logout,
       navigateWithAuth,
       openLoginModal,
       ready,
+      token,
       requireAuth,
       user,
     ],

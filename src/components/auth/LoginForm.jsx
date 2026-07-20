@@ -14,18 +14,31 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const redirectTo = searchParams.get("redirect") || ROUTES.profile;
 
   return (
     <form
       className="space-y-5"
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
+        setError("");
+        setSubmitting(true);
+
         const formData = new FormData(e.currentTarget);
-        const email = String(formData.get("email") || "");
-        login({ email });
-        router.push(redirectTo);
+        const email = String(formData.get("email") || "").trim();
+        const password = String(formData.get("password") || "");
+
+        try {
+          await login({ email, password });
+          router.push(redirectTo);
+        } catch (err) {
+          setError(err?.message || "Invalid email or password.");
+        } finally {
+          setSubmitting(false);
+        }
       }}
     >
       <Input
@@ -66,8 +79,13 @@ export default function LoginForm() {
           required
         />
       </div>
-      <Button type="submit" fullWidth size="lg">
-        Sign In
+      {error ? (
+        <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {error}
+        </p>
+      ) : null}
+      <Button type="submit" fullWidth size="lg" disabled={submitting}>
+        {submitting ? "Signing in..." : "Sign In"}
         <Icon name="arrow" className="size-4" />
       </Button>
     </form>

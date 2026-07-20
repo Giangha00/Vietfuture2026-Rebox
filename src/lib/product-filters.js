@@ -1,4 +1,4 @@
-export const FILTER_CATEGORIES = ["Electronics", "Apparel", "Photography"];
+export const FILTER_CATEGORIES = ["Tech", "Fashion", "Photography"];
 
 export const FILTER_CONDITIONS = ["Like New", "Good", "Fair"];
 
@@ -10,9 +10,9 @@ export const STATION_FILTERS = {
 };
 
 const STATION_MATCHERS = {
-  q1: /district 1|nguyễn huệ|central station alpha/i,
-  td: /thảo điền/i,
-  q7: /quận 7|district 7|phú mỹ hưng/i,
+  q1: /district 1|quận 1|q1|nguyễn huệ|nguyen hue|le loi|central station alpha/i,
+  td: /thảo điền|thao dien|q2/i,
+  q7: /quận 7|district 7|q7|phú mỹ hưng|phu my hung/i,
 };
 
 function toArray(value) {

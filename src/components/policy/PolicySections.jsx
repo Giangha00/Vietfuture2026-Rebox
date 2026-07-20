@@ -3,11 +3,19 @@ import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Alert from "@/components/ui/Alert";
 import Icon from "@/components/ui/Icon";
-import { PROHIBITED_ITEMS } from "@/lib/mock-data";
 import { ROUTES } from "@/lib/routes";
 
+const PROHIBITED_ITEMS = [
+  { title: "Hazmat", desc: "Flammables, chemicals, batteries outside approved limits." },
+  { title: "Perishables", desc: "Food, plants, or anything that spoils in transit." },
+  { title: "Counterfeits", desc: "Replica goods or unauthorized branded merchandise." },
+  { title: "Live Animals", desc: "No live pets or biological specimens." },
+  { title: "Restricted", desc: "Weapons, controlled substances, adult content." },
+  { title: "Cash/Value", desc: "Cash, gift cards, crypto hardware wallets with funds." },
+];
+
 const TOC = [
-  { id: "data-privacy", n: 1, label: "Data Privacy & eKYC", icon: "shield" },
+  { id: "data-privacy", n: 1, label: "Data Privacy", icon: "shield" },
   { id: "escrow", n: 2, label: "Escrow Protection", icon: "lock" },
   { id: "prohibited", n: 3, label: "Prohibited Items", icon: "ban" },
   { id: "dispute", n: 4, label: "Dispute Resolution", icon: "camera" },
@@ -91,17 +99,18 @@ export function DataPrivacySection() {
       id="data-privacy"
       number={1}
       icon="shield"
-      title="Data Privacy & eKYC (GDPR compliant)"
+      title="Data Privacy (GDPR compliant)"
     >
       <p className="mb-4 text-sm leading-relaxed text-rb-muted">
-        eKYC is mandatory before listing. We collect only what is required to
-        verify identity and prevent fraud.
+        We collect only what is required to operate your account, process
+        transactions, and prevent fraud.
       </p>
       <div className="mb-4 grid gap-3 sm:grid-cols-2">
         <div className="rounded-2xl bg-rb-red-soft p-4">
           <h3 className="font-bold text-rb-red">Data Minimization</h3>
           <p className="mt-1 text-sm text-rb-muted">
-            We store ID hashes and verification status — not unnecessary copies.
+            We store account and transaction data needed for escrow — not
+            unnecessary copies.
           </p>
         </div>
         <div className="rounded-2xl bg-orange-50 p-4">

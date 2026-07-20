@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import AccountStatsCard, {
@@ -9,18 +9,40 @@ import AccountStatsCard, {
 import ContentTabs from "@/components/profile/ContentTabs";
 import ListingGrid from "@/components/profile/ListingGrid";
 import { useAuth } from "@/context/AuthContext";
-import { PROFILE_LISTINGS } from "@/lib/mock-data";
 import { loginWithRedirect } from "@/lib/routes";
+import { fetchBackendProducts } from "@/lib/rebox-backend-api";
+import { normalizeBackendProduct } from "@/lib/normalize-backend";
 
 export default function ProfilePageContent() {
   const router = useRouter();
   const { ready, user, isAuthenticated } = useAuth();
+  const [listings, setListings] = useState([]);
 
   useEffect(() => {
     if (ready && !isAuthenticated) {
       router.replace(loginWithRedirect("/profile"));
     }
   }, [isAuthenticated, ready, router]);
+
+  useEffect(() => {
+    if (!ready || !isAuthenticated || !user?.id) return;
+
+    let cancelled = false;
+    (async () => {
+      const rawProducts = await fetchBackendProducts();
+      const normalized = rawProducts
+        .map(normalizeBackendProduct)
+        .filter(Boolean);
+      const mine = normalized.filter((p) => p.seller?.id === user.id);
+      if (!cancelled) setListings(mine);
+    })().catch(() => {
+      if (!cancelled) setListings([]);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, ready, user?.id]);
 
   if (!ready || !isAuthenticated || !user) {
     return (
@@ -40,7 +62,7 @@ export default function ProfilePageContent() {
         </aside>
         <div>
           <ContentTabs />
-          <ListingGrid listings={PROFILE_LISTINGS} />
+          <ListingGrid listings={listings} />
         </div>
       </div>
     </>

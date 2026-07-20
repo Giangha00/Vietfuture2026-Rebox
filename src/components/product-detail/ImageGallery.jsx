@@ -20,7 +20,7 @@ export default function ImageGallery({ images = [], title }) {
         />
         <div className="absolute left-4 top-4 flex flex-wrap gap-2">
           <Badge tone="blue">Escrow Protected</Badge>
-          <Badge tone="green">eKYC Verified</Badge>
+          <Badge tone="green">Verified Seller</Badge>
         </div>
       </div>
       <div className="mt-3 flex gap-2 overflow-x-auto">

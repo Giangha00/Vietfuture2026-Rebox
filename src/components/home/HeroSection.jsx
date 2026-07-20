@@ -48,7 +48,7 @@ export default function HeroSection() {
               <Icon name="check" className="size-5" />
             </span>
             <div>
-              <p className="text-sm font-bold text-rb-ink">eKYC Verified</p>
+              <p className="text-sm font-bold text-rb-ink">Verified Seller</p>
               <p className="text-xs text-rb-muted">Seller identity confirmed</p>
             </div>
             <div className="ml-2 flex -space-x-2">

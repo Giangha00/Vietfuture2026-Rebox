@@ -23,7 +23,7 @@ export default function Footer({ variant = "default" }) {
               Terms of Service
             </Link>
             <Link href={ROUTES.policy} className="hover:text-rb-red">
-              eKYC Requirements
+              Account Security
             </Link>
             <Link href={ROUTES.contact} className="hover:text-rb-red">
               Trust & Safety
@@ -46,7 +46,7 @@ export default function Footer({ variant = "default" }) {
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/70">
             <Link href={ROUTES.policy} className="hover:text-white">
-              eKYC Verified
+              Verified Sellers
             </Link>
             <Link href={ROUTES.policy} className="hover:text-white">
               Escrow Protected
@@ -69,7 +69,7 @@ export default function Footer({ variant = "default" }) {
         <div className="space-y-4">
           <Logo />
           <p className="max-w-xs text-sm leading-relaxed text-rb-muted">
-            Frictionless C2C trading with escrow, eKYC, and standardized ReBox
+            Frictionless C2C trading with escrow and standardized ReBox
             station shipping.
           </p>
           <div className="flex gap-3 text-sm font-semibold text-rb-red">

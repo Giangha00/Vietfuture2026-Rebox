@@ -16,7 +16,7 @@ export function AboutHero() {
       </h1>
       <p className="mt-5 max-w-2xl text-lg text-rb-muted">
         ReBox removes meetups, haggling friction, and trust gaps with escrow,
-        eKYC, and standardized station logistics.
+        escrow, and standardized station logistics.
       </p>
     </section>
   );

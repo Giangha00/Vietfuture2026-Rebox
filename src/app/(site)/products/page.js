@@ -4,20 +4,27 @@ import SidebarFilters from "@/components/products/SidebarFilters";
 import ProductListHeader from "@/components/products/ProductListHeader";
 import ProductGrid from "@/components/products/ProductGrid";
 import Pagination from "@/components/ui/Pagination";
-import { PRODUCTS } from "@/lib/mock-data";
 import { filterProducts, parseProductSearchParams } from "@/lib/product-filters";
+import { fetchBackendProducts } from "@/lib/rebox-backend-api";
+import { normalizeBackendProduct } from "@/lib/normalize-backend";
 
 export const metadata = {
   title: "Products",
   description: "Browse escrow-protected second-hand goods on ReBox.",
 };
 
+export const dynamic = "force-dynamic";
+
 const PER_PAGE = 6;
 
 export default async function ProductsPage({ searchParams }) {
   const params = await searchParams;
   const parsed = parseProductSearchParams(params);
-  const filtered = filterProducts(PRODUCTS, params);
+  const backendProducts = await fetchBackendProducts();
+  const normalizedProducts = backendProducts
+    .map(normalizeBackendProduct)
+    .filter(Boolean);
+  const filtered = filterProducts(normalizedProducts, params);
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const page = Math.min(parsed.page, totalPages);
   const start = (page - 1) * PER_PAGE;

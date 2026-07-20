@@ -252,7 +252,7 @@ export const CURRENT_USER = {
   level: 4,
   levelProgress: 72,
   badges: [
-    { title: "eKYC Verified", subtitle: "Identity confirmed Jun 2024" },
+    { title: "Verified Account", subtitle: "Member since Jun 2024" },
     { title: "Escrow Eligible", subtitle: "Premium escrow unlocked" },
     { title: "Station Partner", subtitle: "Preferred drop-off rates" },
   ],
@@ -264,8 +264,8 @@ export const FAQ_ITEMS = [
     a: "Buyer funds are held until the item is picked up and inspected. After confirmation—or automatically after 48 hours—funds release to the seller.",
   },
   {
-    q: "What is eKYC and why is it required?",
-    a: "eKYC verifies your identity before you can list items. It protects both buyers and sellers on every trade.",
+    q: "How do seller ratings work?",
+    a: "Ratings reflect completed trades, response time, and escrow history. Higher-rated sellers unlock Premium Escrow benefits.",
   },
   {
     q: "Where are ReBox Stations?",

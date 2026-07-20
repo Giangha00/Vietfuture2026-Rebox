@@ -1,12 +1,18 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Icon from "@/components/ui/Icon";
 import AuthGateButton from "@/components/auth/AuthGateButton";
+import EditProfileModal from "@/components/profile/EditProfileModal";
 import { LOGIN_REASONS } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 
 export default function ProfileHeader({ user }) {
+  const [editOpen, setEditOpen] = useState(false);
+
   return (
     <section className="border-b border-rb-border bg-white">
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
@@ -27,19 +33,29 @@ export default function ProfileHeader({ user }) {
             <h1 className="font-display text-3xl font-bold text-rb-ink">
               {user.name}
             </h1>
+            {user.email ? (
+              <p className="mt-1 text-sm text-rb-muted">{user.email}</p>
+            ) : null}
             <Badge tone="soft" className="mt-2" icon={<Icon name="star" className="size-3" />}>
               Trust Rating {user.rating}
             </Badge>
             <p className="mt-2 text-sm text-rb-muted">{user.bio}</p>
+            {user.phone ? (
+              <p className="mt-1 text-sm text-rb-muted">Phone: {user.phone}</p>
+            ) : null}
           </div>
         </div>
         <div className="flex flex-wrap gap-3">
           <AuthGateButton href={ROUTES.postItem} reason={LOGIN_REASONS.sell}>
             Quick List Item
           </AuthGateButton>
-          <Button variant="outline">Edit Profile</Button>
+          <Button variant="outline" onClick={() => setEditOpen(true)}>
+            Edit Profile
+          </Button>
         </div>
       </div>
+
+      <EditProfileModal open={editOpen} onClose={() => setEditOpen(false)} />
     </section>
   );
 }

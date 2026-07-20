@@ -7,8 +7,41 @@ import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Accordion from "@/components/ui/Accordion";
 import Icon from "@/components/ui/Icon";
-import { FAQ_ITEMS, STATIONS } from "@/lib/mock-data";
 import { ROUTES } from "@/lib/routes";
+
+const FAQ_ITEMS = [
+  {
+    q: "How does 48h escrow work?",
+    a: "Buyer funds are held until the item is picked up and inspected. After confirmation—or automatically after 48 hours—funds release to the seller.",
+  },
+  {
+    q: "How do seller ratings work?",
+    a: "Ratings reflect completed trades, response time, and escrow history. Higher-rated sellers unlock Premium Escrow benefits.",
+  },
+  {
+    q: "Where are ReBox Stations?",
+    a: "Stations live inside Circle K and GS25 partners across HCMC and Hanoi. Use Contact → Physical Stations to find one near you.",
+  },
+  {
+    q: "What if my item arrives damaged?",
+    a: "Film a continuous unboxing video. Without video evidence, dispute claims may be restricted.",
+  },
+];
+
+const STATIONS = [
+  {
+    city: "Ho Chi Minh",
+    address: "Circle K Nguyễn Huệ, Q1",
+    locker: "Smart Locker #A12",
+    color: "red",
+  },
+  {
+    city: "Hanoi",
+    address: "GS25 Trần Hưng Đạo, Hoàn Kiếm",
+    locker: "Smart Locker #HN-03",
+    color: "blue",
+  },
+];
 
 export function ContactHero() {
   return (
@@ -69,7 +102,7 @@ export function ContactForm() {
           options={[
             "Escrow question",
             "Station issue",
-            "eKYC support",
+            "Account support",
             "Dispute",
             "Other",
           ]}

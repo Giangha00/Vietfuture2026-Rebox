@@ -5,7 +5,6 @@ export const ROUTES = {
   product: (id) => `/products/${id}`,
   login: "/login",
   signup: "/signup",
-  signupEkyc: "/signup?step=ekyc",
   profile: "/profile",
   profileTab: (tab) => `/profile?tab=${tab}`,
   about: "/about",
@@ -39,7 +38,7 @@ export const FOOTER_LINKS = {
     { label: "Sustainability", href: ROUTES.about },
   ],
   services: [
-    { label: "eKYC Verification", href: ROUTES.policy },
+    { label: "Account Security", href: ROUTES.policy },
     { label: "Escrow Protection", href: ROUTES.policy },
     { label: "ReBox Stations", href: ROUTES.stations },
   ],

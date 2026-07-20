@@ -1,24 +1,35 @@
 import ImageGallery from "@/components/product-detail/ImageGallery";
 import ProductInfo from "@/components/product-detail/ProductInfo";
 import InspectionReport from "@/components/product-detail/InspectionReport";
-import { getProductById, PRODUCTS } from "@/lib/mock-data";
+import { notFound } from "next/navigation";
+import { fetchBackendProductById } from "@/lib/rebox-backend-api";
+import { normalizeBackendProduct } from "@/lib/normalize-backend";
 
-export function generateStaticParams() {
-  return PRODUCTS.map((p) => ({ id: p.id }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }) {
   const { id } = await params;
-  const product = getProductById(id);
-  return {
-    title: product.title,
-    description: product.description,
-  };
+  try {
+    const raw = await fetchBackendProductById(id);
+    const product = normalizeBackendProduct(raw);
+    if (!product) return {};
+    return { title: product.title, description: product.description };
+  } catch {
+    return {};
+  }
 }
 
 export default async function ProductDetailPage({ params }) {
   const { id } = await params;
-  const product = getProductById(id);
+  let rawProduct = null;
+  try {
+    rawProduct = await fetchBackendProductById(id);
+  } catch {
+    return notFound();
+  }
+
+  const product = normalizeBackendProduct(rawProduct);
+  if (!product) return notFound();
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">

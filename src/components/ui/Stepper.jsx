@@ -1,7 +1,7 @@
 export default function Stepper({
   steps = [
     { id: 1, label: "Account Info" },
-    { id: 2, label: "eKYC" },
+    { id: 2, label: "Confirm" },
   ],
   current = 1,
 }) {

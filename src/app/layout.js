@@ -7,7 +7,7 @@ export const metadata = {
     template: "%s · ReBox",
   },
   description:
-    "Escrow-protected C2C marketplace with eKYC verification and ReBox Station shipping.",
+    "Escrow-protected C2C marketplace with ReBox Station shipping.",
 };
 
 export default function RootLayout({ children }) {

@@ -8,8 +8,8 @@ const FEATURES = [
   },
   {
     icon: "user",
-    title: "eKYC Verified Sellers",
-    desc: "Every lister completes identity verification before going live.",
+    title: "Verified Sellers",
+    desc: "Trusted profiles with ratings, trade history, and escrow eligibility.",
   },
   {
     icon: "box",
