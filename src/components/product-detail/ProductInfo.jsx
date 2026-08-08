@@ -1,71 +1,62 @@
 import Icon from "@/components/ui/Icon";
 import Badge from "@/components/ui/Badge";
-import SellerCard, { InstantBargain } from "@/components/product-detail/SellerCard";
+import SellerCard from "@/components/product-detail/SellerCard";
 import ProductActions from "@/components/product-detail/ProductActions";
+import WishlistButton from "@/components/wishlist/WishlistButton";
+import { formatMoney } from "@/lib/money";
 
 export default function ProductInfo({ product }) {
   return (
     <div className="space-y-5">
       <div className="flex items-start justify-between gap-3">
-        <h1 className="font-display text-3xl font-bold text-rb-ink">
+        <h1 className="text-2xl font-bold text-rb-ink sm:text-3xl">
           {product.title}
         </h1>
-        <button
-          type="button"
-          className="rounded-full border border-rb-border p-2 text-rb-muted hover:text-rb-red"
-          aria-label="Save"
-        >
-          <Icon name="heart" className="size-5" />
-        </button>
+        <WishlistButton product={product} variant="ghost" />
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <p className="text-3xl font-bold text-rb-red">
-          ${product.price.toFixed(2)}
-        </p>
-        {product.originalPrice && (
-          <>
-            <p className="text-lg text-rb-muted line-through">
-              ${product.originalPrice.toFixed(2)}
-            </p>
-            <Badge tone="soft">{product.discount}% OFF</Badge>
-          </>
-        )}
+        {product.brand ? <Badge tone="soft">{product.brand}</Badge> : null}
+        <Badge tone="soft">Condition: {product.condition}</Badge>
+        {product.category ? <Badge tone="soft">{product.category}</Badge> : null}
+        {product.location ? (
+          <span className="inline-flex items-center gap-1 text-sm text-rb-muted">
+            <Icon name="mapPin" className="size-4" />
+            {product.location}
+          </span>
+        ) : null}
       </div>
 
-      <SellerCard seller={product.seller} />
-      <InstantBargain price={product.price} />
+      <p className="text-3xl font-bold text-rb-green">
+        {formatMoney(product.price)}
+      </p>
 
       <ProductActions product={product} />
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl border border-rb-border bg-white p-4">
-          <Icon name="box" className="mb-2 size-5 text-rb-red" />
-          <p className="text-[11px] font-bold uppercase tracking-wider text-rb-muted">
-            Required ReBox
-          </p>
-          <p className="font-semibold text-rb-ink">{product.boxSize}</p>
-        </div>
-        <div className="rounded-2xl border border-rb-border bg-white p-4">
-          <Icon name="check" className="mb-2 size-5 text-emerald-600" />
-          <p className="text-[11px] font-bold uppercase tracking-wider text-rb-muted">
-            Condition
-          </p>
-          <p className="font-semibold text-rb-ink">{product.conditionGrade}</p>
-          <p className="text-xs text-rb-muted">AI-graded</p>
+      <div className="rounded-2xl bg-rb-green-soft p-4">
+        <div className="flex gap-3">
+          <Icon name="shield" className="size-5 shrink-0 text-rb-green" />
+          <div>
+            <p className="font-semibold text-rb-ink">Buyer protection</p>
+            <p className="mt-1 text-sm text-rb-muted">
+              Get a refund if the item doesn&apos;t match the listing description.
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-rb-red/20 bg-rb-red-soft p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-sm font-bold text-rb-ink">Nearest ReBox Station</p>
-            <p className="mt-1 text-sm text-rb-muted">{product.station}</p>
-          </div>
-          <button type="button" className="text-sm font-semibold text-rb-red">
-            Change
-          </button>
-        </div>
+      <SellerCard seller={product.seller} />
+
+      <div className="rounded-2xl border border-rb-border bg-white p-4">
+        <h3 className="mb-3 font-bold text-rb-ink">Specs & condition</h3>
+        <ul className="space-y-2.5 text-sm">
+          {(product.specs || []).map((spec) => (
+            <li key={spec.label} className="flex justify-between gap-4">
+              <span className="text-rb-muted">{spec.label}</span>
+              <span className="text-right font-medium text-rb-ink">{spec.value}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );

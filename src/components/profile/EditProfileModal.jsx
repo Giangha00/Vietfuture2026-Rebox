@@ -7,9 +7,18 @@ import Modal from "@/components/ui/Modal";
 import Icon from "@/components/ui/Icon";
 import { useAuth } from "@/context/AuthContext";
 import { backendUploadImages } from "@/lib/rebox-backend-api";
+import { ROUTES } from "@/lib/routes";
+import {
+  PHONE_HINT,
+  hasFieldErrors,
+  normalizePhone,
+  validateEmail,
+  validateFullName,
+  validatePhone,
+} from "@/lib/validation";
 
 export default function EditProfileModal({ open, onClose }) {
-  const { user, token, updateProfile } = useAuth();
+  const { user, token, updateProfile, redirectToVerifyEmail } = useAuth();
   const fileInputRef = useRef(null);
 
   const [fullName, setFullName] = useState("");
@@ -19,7 +28,8 @@ export default function EditProfileModal({ open, onClose }) {
   const [avatarUrl, setAvatarUrl] = useState("");
   const [avatarPreview, setAvatarPreview] = useState("");
   const [avatarFile, setAvatarFile] = useState(null);
-  const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -32,8 +42,18 @@ export default function EditProfileModal({ open, onClose }) {
     setAvatarUrl(user.avatar || "");
     setAvatarPreview(user.avatar || "");
     setAvatarFile(null);
-    setError("");
+    setFieldErrors({});
+    setFormError("");
   }, [open, user]);
+
+  function clearField(name) {
+    setFieldErrors((prev) => {
+      if (!prev[name]) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+  }
 
   if (!user) return null;
 
@@ -51,9 +71,23 @@ export default function EditProfileModal({ open, onClose }) {
           if (!token) return;
 
           setSubmitting(true);
-          setError("");
+          setFormError("");
 
           try {
+            const nameCheck = validateFullName(fullName);
+            const emailCheck = validateEmail(email);
+            const phoneCheck = validatePhone(phone, { required: true });
+            const errors = {};
+            if (!nameCheck.ok) errors.fullName = nameCheck.message;
+            if (!emailCheck.ok) errors.email = emailCheck.message;
+            if (!phoneCheck.ok) errors.phone = phoneCheck.message;
+            if (hasFieldErrors(errors)) {
+              setFieldErrors(errors);
+              setSubmitting(false);
+              return;
+            }
+            setFieldErrors({});
+
             let nextAvatarUrl = avatarUrl;
             if (avatarFile) {
               const urls = await backendUploadImages({
@@ -63,26 +97,37 @@ export default function EditProfileModal({ open, onClose }) {
               nextAvatarUrl = urls[0] || nextAvatarUrl;
             }
 
-            await updateProfile({
-              fullName: fullName.trim(),
-              email: email.trim(),
-              phone: phone.trim(),
+            const previousEmail = user.email;
+            const updated = await updateProfile({
+              fullName: nameCheck.name,
+              email: emailCheck.email,
+              phone: phoneCheck.phone,
               bio: bio.trim(),
               avatarUrl: nextAvatarUrl,
             });
             onClose?.();
+
+            const emailChanged =
+              emailCheck.email.toLowerCase() !==
+              String(previousEmail || "").toLowerCase();
+            if (emailChanged && updated && !updated.emailVerified) {
+              redirectToVerifyEmail({
+                email: updated.email,
+                redirect: ROUTES.profile,
+              });
+            }
           } catch (err) {
-            setError(err?.message || "Could not update profile.");
+            setFormError(err?.message || "Could not update profile.");
           } finally {
             setSubmitting(false);
           }
         }}
       >
         <div className="flex items-center gap-4">
-          <div className="relative size-20 overflow-hidden rounded-full border border-rb-border bg-rb-pink">
+          <div className="relative size-20 overflow-hidden rounded-full border border-rb-border bg-rb-surface">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={avatarPreview || avatarUrl}
+              src={avatarPreview || avatarUrl || "/default-avatar.svg"}
               alt={fullName || "Avatar"}
               className="size-full object-cover"
             />
@@ -97,7 +142,9 @@ export default function EditProfileModal({ open, onClose }) {
                 const file = e.target.files?.[0];
                 if (!file) return;
                 if (file.size > 5 * 1024 * 1024) {
-                  setError("Avatar must be under 5MB.");
+                  setFieldErrors({
+                    avatar: "Avatar image must be under 5MB (JPEG, PNG, WebP, or GIF).",
+                  });
                   e.target.value = "";
                   return;
                 }
@@ -107,7 +154,8 @@ export default function EditProfileModal({ open, onClose }) {
                 const preview = URL.createObjectURL(file);
                 setAvatarFile(file);
                 setAvatarPreview(preview);
-                setError("");
+                clearField("avatar");
+                setFormError("");
               }}
             />
             <Button
@@ -119,28 +167,49 @@ export default function EditProfileModal({ open, onClose }) {
               <Icon name="camera" className="size-4" />
               Change photo
             </Button>
+            {fieldErrors.avatar ? (
+              <p className="mt-2 text-xs font-medium text-red-600" role="alert">
+                {fieldErrors.avatar}
+              </p>
+            ) : null}
           </div>
         </div>
 
         <Input
           label="Full Name"
           value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
+          onChange={(e) => {
+            setFullName(e.target.value);
+            clearField("fullName");
+          }}
           required
+          error={fieldErrors.fullName}
         />
         <Input
           label="Email"
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            clearField("email");
+          }}
           required
+          error={fieldErrors.email}
         />
         <Input
           label="Phone"
           type="tel"
+          inputMode="numeric"
           value={phone}
-          onChange={(e) => setPhone(e.target.value)}
+          onChange={(e) => {
+            setPhone(normalizePhone(e.target.value));
+            clearField("phone");
+          }}
           placeholder="0901234567"
+          required
+          maxLength={10}
+          error={fieldErrors.phone}
+          hint={fieldErrors.phone ? undefined : PHONE_HINT}
         />
         <div className="flex flex-col gap-1.5">
           <label className="text-[11px] font-bold uppercase tracking-[0.08em] text-rb-ink">
@@ -151,15 +220,15 @@ export default function EditProfileModal({ open, onClose }) {
             onChange={(e) => setBio(e.target.value)}
             rows={3}
             maxLength={280}
-            className="rounded-xl border border-rb-border bg-rb-pink/60 px-4 py-3 text-sm outline-none focus:border-rb-red focus:bg-white"
+            className="rounded-xl border border-rb-border bg-rb-surface/60 px-4 py-3 text-sm outline-none focus:border-rb-green focus:bg-white"
             placeholder="Tell buyers a bit about yourself..."
           />
           <p className="text-xs text-rb-muted">{bio.length}/280</p>
         </div>
 
-        {error ? (
+        {formError ? (
           <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-            {error}
+            {formError}
           </p>
         ) : null}
 

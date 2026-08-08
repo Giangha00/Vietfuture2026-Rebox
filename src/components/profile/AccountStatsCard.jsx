@@ -2,14 +2,14 @@ import Icon from "@/components/ui/Icon";
 
 export default function AccountStatsCard({ user }) {
   return (
-    <div className="rounded-2xl bg-rb-pink p-5">
+    <div className="rounded-2xl bg-rb-surface p-5">
       <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-rb-ink">
         Account Stats
       </h3>
       <ul className="space-y-3">
         {user.stats.map((stat) => (
           <li key={stat.label} className="flex items-center gap-3">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-white text-rb-red shadow-sm">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-white text-rb-green shadow-sm">
               <Icon name={stat.icon} className="size-5" />
             </span>
             <div className="flex-1">
@@ -26,7 +26,7 @@ export default function AccountStatsCard({ user }) {
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-white">
           <div
-            className="h-full rounded-full bg-rb-red"
+            className="h-full rounded-full bg-rb-green"
             style={{ width: `${user.levelProgress}%` }}
           />
         </div>

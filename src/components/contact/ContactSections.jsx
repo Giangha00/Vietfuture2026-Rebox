@@ -8,6 +8,7 @@ import Select from "@/components/ui/Select";
 import Accordion from "@/components/ui/Accordion";
 import Icon from "@/components/ui/Icon";
 import { ROUTES } from "@/lib/routes";
+import { validateEmail, validateFullName } from "@/lib/validation";
 
 const FAQ_ITEMS = [
   {
@@ -46,12 +47,12 @@ const STATIONS = [
 export function ContactHero() {
   return (
     <section className="relative overflow-hidden border-b border-rb-border bg-white">
-      <div className="absolute -right-20 -top-20 size-64 rounded-full bg-rb-pink" />
+      <div className="absolute -right-20 -top-20 size-64 rounded-full bg-rb-surface" />
       <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <Badge tone="soft" className="mb-4 uppercase tracking-[0.12em]">
           Support Channels
         </Badge>
-        <h1 className="max-w-2xl font-display text-4xl font-bold text-rb-ink sm:text-5xl">
+        <h1 className="max-w-2xl font-sans text-4xl font-bold text-rb-ink sm:text-5xl">
           How can we help you secure your trade?
         </h1>
         <p className="mt-4 max-w-xl text-rb-muted">
@@ -59,7 +60,7 @@ export function ContactHero() {
           it.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Button variant="dark" href={ROUTES.policy}>
+          <Button variant="dark" href={ROUTES.help}>
             <Icon name="book" className="size-4" />
             Visit Help Center
           </Button>
@@ -75,24 +76,62 @@ export function ContactHero() {
 
 export function ContactForm() {
   const [sent, setSent] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  function clearField(name) {
+    setFieldErrors((prev) => {
+      if (!prev[name]) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+  }
 
   return (
     <form
       className="rounded-2xl border border-rb-border bg-white p-6 shadow-sm"
       onSubmit={(e) => {
         e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const nameCheck = validateFullName(formData.get("name"));
+        const emailCheck = validateEmail(formData.get("email"));
+        const message = String(formData.get("message") || "").trim();
+        const errors = {};
+        if (!nameCheck.ok) errors.name = nameCheck.message;
+        if (!emailCheck.ok) errors.email = emailCheck.message;
+        if (message.length < 10) {
+          errors.message =
+            message.length === 0
+              ? "Message is required. Tell us what you need help with."
+              : `Message must be at least 10 characters (currently ${message.length}).`;
+        }
+        if (Object.keys(errors).length > 0) {
+          setFieldErrors(errors);
+          return;
+        }
+        setFieldErrors({});
         setSent(true);
       }}
     >
       <h2 className="mb-5 text-xl font-bold text-rb-ink">Send a Message</h2>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Input label="Full Name" name="name" placeholder="Your name" required />
+        <Input
+          label="Full Name"
+          name="name"
+          placeholder="Your name"
+          required
+          minLength={2}
+          error={fieldErrors.name}
+          onChange={() => clearField("name")}
+        />
         <Input
           label="Email Address"
           type="email"
           name="email"
           placeholder="you@email.com"
           required
+          error={fieldErrors.email}
+          onChange={() => clearField("email")}
         />
       </div>
       <div className="mt-4">
@@ -116,9 +155,22 @@ export function ContactForm() {
           name="message"
           rows={5}
           required
-          className="rounded-xl border border-rb-border bg-rb-pink/60 px-4 py-3 text-sm outline-none focus:border-rb-red focus:bg-white focus:ring-2 focus:ring-rb-red/15"
+          minLength={10}
+          onChange={() => clearField("message")}
+          aria-invalid={fieldErrors.message ? "true" : undefined}
+          className={[
+            "rounded-xl border bg-rb-surface/60 px-4 py-3 text-sm outline-none focus:bg-white focus:ring-2",
+            fieldErrors.message
+              ? "border-red-400 focus:border-red-500 focus:ring-red-200"
+              : "border-rb-border focus:border-rb-green focus:ring-rb-green/15",
+          ].join(" ")}
           placeholder="Tell us what happened..."
         />
+        {fieldErrors.message ? (
+          <p className="text-xs font-medium text-red-600" role="alert">
+            {fieldErrors.message}
+          </p>
+        ) : null}
       </div>
       <Button type="submit" className="mt-5" fullWidth>
         {sent ? "Message Sent ✓" : "Send Message"}
@@ -152,7 +204,7 @@ export function ContactSidebar() {
             <li key={s.locker} className="flex gap-3">
               <span
                 className={`mt-1 size-3 rounded-full ${
-                  s.color === "red" ? "bg-rb-red" : "bg-sky-500"
+                  s.color === "red" ? "bg-rb-green" : "bg-sky-500"
                 }`}
               />
               <div>
@@ -204,14 +256,14 @@ export function FaqSection() {
   return (
     <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
       <div className="mb-8 text-center">
-        <h2 className="font-display text-3xl font-bold">
+        <h2 className="font-sans text-3xl font-bold">
           Common Questions
         </h2>
         <p className="mt-2 text-rb-muted">Quick answers before you open a ticket.</p>
       </div>
       <Accordion items={FAQ_ITEMS} />
       <p className="mt-6 text-center">
-        <a href={ROUTES.policy} className="text-sm font-semibold text-rb-red hover:underline">
+        <a href={ROUTES.policy} className="text-sm font-semibold text-rb-green hover:underline">
           See all Help Articles →
         </a>
       </p>

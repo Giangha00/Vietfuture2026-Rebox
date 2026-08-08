@@ -2,17 +2,18 @@ import Link from "next/link";
 
 const variants = {
   primary:
-    "bg-rb-red text-white hover:bg-rb-red-dark shadow-sm shadow-rb-red/20",
+    "bg-rb-green text-white hover:bg-rb-green-dark shadow-sm shadow-rb-green/20",
   secondary:
-    "bg-white text-rb-ink border border-rb-border hover:border-rb-red/40 hover:bg-rb-red-soft",
+    "bg-white text-rb-ink border border-rb-border hover:border-rb-green/40 hover:bg-rb-green-soft",
   outline:
-    "bg-transparent text-rb-red border border-rb-red hover:bg-rb-red hover:text-white",
-  ghost: "bg-transparent text-rb-ink hover:bg-rb-red-soft",
-  white: "bg-white text-rb-red hover:bg-rb-red-soft",
+    "bg-transparent text-rb-green border border-rb-green hover:bg-rb-green hover:text-white",
+  ghost: "bg-transparent text-rb-ink hover:bg-rb-green-soft",
+  white: "bg-white text-rb-green hover:bg-rb-green-soft",
   "white-outline":
     "bg-transparent text-white border border-white/70 hover:bg-white/10",
-  dark: "bg-rb-brown text-white hover:bg-rb-ink",
-  soft: "bg-rb-red-soft text-rb-red hover:bg-rb-border",
+  dark: "bg-rb-green-dark text-white hover:bg-rb-ink",
+  soft: "bg-rb-green-soft text-rb-green hover:bg-rb-mint",
+  mint: "bg-rb-mint text-rb-green hover:bg-rb-green-soft",
 };
 
 const sizes = {
@@ -34,7 +35,7 @@ export default function Button({
 }) {
   const classes = [
     "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200",
-    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rb-red",
+    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rb-green",
     "disabled:opacity-50 disabled:pointer-events-none",
     variants[variant] ?? variants.primary,
     sizes[size] ?? sizes.md,

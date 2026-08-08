@@ -7,12 +7,23 @@ export const ROUTES = {
   signup: "/signup",
   profile: "/profile",
   profileTab: (tab) => `/profile?tab=${tab}`,
+  editListing: (id) => `/profile/listings/${id}/edit`,
   about: "/about",
   contact: "/contact",
   policy: "/policy",
+  help: "/help",
   postItem: "/post-item",
+  order: "/order",
+  orders: "/orders",
+  orderDetail: (id) => `/orders/${id}`,
+  sellingOrders: "/orders/selling",
+  shipper: "/shipper",
+  offers: "/offers",
+  sellingOffers: "/offers/selling",
+  wishlist: "/wishlist",
   stations: "/contact#stations",
-  forgotPassword: "/login#forgot",
+  forgotPassword: "/forgot-password",
+  verifyEmail: "/verify-email",
 };
 
 export function loginWithRedirect(returnTo = ROUTES.home) {
@@ -23,28 +34,36 @@ export function signupWithRedirect(returnTo = ROUTES.home) {
   return `${ROUTES.signup}?redirect=${encodeURIComponent(returnTo)}`;
 }
 
+export function verifyEmailWithParams({
+  email,
+  redirect = ROUTES.home,
+  debugCode,
+} = {}) {
+  const params = new URLSearchParams();
+  if (email) params.set("email", email);
+  if (redirect) params.set("redirect", redirect);
+  if (debugCode) params.set("debug", String(debugCode));
+  const query = params.toString();
+  return query ? `${ROUTES.verifyEmail}?${query}` : ROUTES.verifyEmail;
+}
+
 export const MAIN_NAV = [
-  { label: "Home", href: ROUTES.home },
-  { label: "Products", href: ROUTES.products },
-  { label: "About Us", href: ROUTES.about },
-  { label: "Contact", href: ROUTES.contact },
-  { label: "Policy & Terms", href: ROUTES.policy },
+  { label: "Explore", href: ROUTES.products },
+];
+
+export const CATEGORY_NAV = [
+  { label: "All products", href: ROUTES.products },
 ];
 
 export const FOOTER_LINKS = {
-  company: [
+  about: [
     { label: "About Us", href: ROUTES.about },
-    { label: "Careers", href: ROUTES.about },
     { label: "Sustainability", href: ROUTES.about },
+    { label: "Safety", href: ROUTES.policy },
   ],
-  services: [
-    { label: "Account Security", href: ROUTES.policy },
-    { label: "Escrow Protection", href: ROUTES.policy },
-    { label: "ReBox Stations", href: ROUTES.stations },
-  ],
-  legal: [
+  support: [
     { label: "Terms of Service", href: ROUTES.policy },
-    { label: "Privacy Policy", href: ROUTES.policy },
-    { label: "Contact Support", href: ROUTES.contact },
+    { label: "Privacy Policy", href: `${ROUTES.policy}#privacy` },
+    { label: "Help Center", href: ROUTES.help },
   ],
 };

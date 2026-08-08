@@ -1,11 +1,13 @@
 const tones = {
-  red: "bg-rb-red text-white",
-  soft: "bg-rb-red-soft text-rb-red",
+  red: "bg-rb-green text-white",
+  soft: "bg-rb-green-soft text-rb-green",
   blue: "bg-rb-blue-soft text-sky-800",
-  green: "bg-emerald-100 text-emerald-800",
-  dark: "bg-rb-navy text-white",
+  green: "bg-rb-mint text-rb-green",
+  dark: "bg-rb-green text-white",
   gray: "bg-stone-100 text-stone-700",
   outline: "bg-white/90 text-rb-ink border border-white/80 backdrop-blur",
+  danger: "bg-rb-danger-soft text-rb-danger",
+  orange: "bg-orange-100 text-orange-800",
 };
 
 export default function Badge({

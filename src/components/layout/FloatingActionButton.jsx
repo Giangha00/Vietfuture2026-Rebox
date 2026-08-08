@@ -11,7 +11,7 @@ export default function FloatingActionButton() {
       href={ROUTES.postItem}
       reason={LOGIN_REASONS.sell}
       aria-label="Post item"
-      className="fixed bottom-6 right-6 z-50 !size-14 !rounded-full !p-0 shadow-lg shadow-rb-red/30 hover:scale-105"
+      className="fixed bottom-6 right-6 z-50 !size-14 !rounded-full !p-0 shadow-lg shadow-rb-green/30 hover:scale-105"
     >
       <Icon name="plus" className="size-6" />
     </AuthGateButton>

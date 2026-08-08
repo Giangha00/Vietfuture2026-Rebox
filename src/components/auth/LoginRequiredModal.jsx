@@ -43,8 +43,8 @@ export default function LoginRequiredModal({
   return (
     <Modal open={open} onClose={onClose} title={copy.title}>
       <div className="space-y-5">
-        <div className="flex items-start gap-3 rounded-2xl bg-rb-red-soft px-4 py-3">
-          <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-white text-rb-red">
+        <div className="flex items-start gap-3 rounded-2xl bg-rb-green-soft px-4 py-3">
+          <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-white text-rb-green">
             <Icon name="lock" className="size-4" />
           </span>
           <p className="text-sm leading-relaxed text-rb-muted">{copy.description}</p>
@@ -67,7 +67,7 @@ export default function LoginRequiredModal({
 
         <p className="text-center text-xs text-rb-muted">
           Chưa có tài khoản?{" "}
-          <Link href={signupHref} className="font-semibold text-rb-red hover:underline">
+          <Link href={signupHref} className="font-semibold text-rb-green hover:underline">
             Đăng ký miễn phí
           </Link>
         </p>

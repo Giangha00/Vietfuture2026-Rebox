@@ -1,12 +1,10 @@
 import HeroSection from "@/components/home/HeroSection";
 import { CategoryGrid } from "@/components/home/CategoryGrid";
+import { ProductRails } from "@/components/home/ProductRails";
 import { HowItWorks } from "@/components/home/HowItWorks";
-import NetworkSection from "@/components/home/NetworkSection";
-import TrustFeatures from "@/components/home/TrustFeatures";
-import CtaBanner from "@/components/home/CtaBanner";
 
 export const metadata = {
-  title: "Silent Shopping – Standardized Box Shipping",
+  title: "Quality second-hand, fair prices",
 };
 
 export default function HomePage() {
@@ -14,10 +12,8 @@ export default function HomePage() {
     <>
       <HeroSection />
       <CategoryGrid />
+      <ProductRails />
       <HowItWorks />
-      <NetworkSection />
-      <TrustFeatures />
-      <CtaBanner />
     </>
   );
 }

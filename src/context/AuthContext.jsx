@@ -8,15 +8,20 @@ import {
   useMemo,
   useState,
 } from "react";
-import { useRouter } from "next/navigation";
-import { ROUTES } from "@/lib/routes";
+import { usePathname, useRouter } from "next/navigation";
+import { ROUTES, verifyEmailWithParams } from "@/lib/routes";
 import LoginRequiredModal from "@/components/auth/LoginRequiredModal";
-import { LOGIN_REASONS } from "@/lib/auth";
+import {
+  getVerificationEmailFromError,
+  isNeedsVerificationError,
+  LOGIN_REASONS,
+} from "@/lib/auth";
 import {
   backendFetchMe,
   backendLogin,
   backendRegister,
   backendUpdateMe,
+  backendVerifyEmail,
 } from "@/lib/rebox-backend-api";
 import { normalizeBackendUser } from "@/lib/normalize-backend";
 
@@ -36,6 +41,7 @@ function readStoredToken() {
 
 export function AuthProvider({ children }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false);
   const [token, setToken] = useState(null);
@@ -68,20 +74,63 @@ export function AuthProvider({ children }) {
     window.localStorage.setItem(TOKEN_STORAGE_KEY, nextToken);
   }, []);
 
+  const redirectToVerifyEmail = useCallback(
+    ({ email, redirect, debugCode } = {}) => {
+      const href = verifyEmailWithParams({
+        email: email || user?.email || "",
+        redirect: redirect || pathname || ROUTES.home,
+        debugCode,
+      });
+      router.push(href);
+      return href;
+    },
+    [pathname, router, user?.email],
+  );
+
+  const handleAuthError = useCallback(
+    (error, { redirect, email } = {}) => {
+      if (!isNeedsVerificationError(error)) return false;
+
+      redirectToVerifyEmail({
+        email: getVerificationEmailFromError(error, email || user?.email),
+        redirect: redirect || pathname || ROUTES.home,
+        debugCode: error?.debugCode || error?.data?.debugCode,
+      });
+      return true;
+    },
+    [pathname, redirectToVerifyEmail, user?.email],
+  );
+
   const login = useCallback(
     async ({ email, password }) => {
-      const result = await backendLogin({ email, password });
-      saveToken(result.token);
-      const normalized = normalizeBackendUser(result.user);
-      setUser(normalized);
-      return normalized;
+      try {
+        const result = await backendLogin({ email, password });
+        saveToken(result.token);
+        const normalized = normalizeBackendUser(result.user);
+        setUser(normalized);
+        return normalized;
+      } catch (error) {
+        if (error?.data?.needsVerification) {
+          const verifyError = new Error(error.message);
+          verifyError.needsVerification = true;
+          verifyError.email = error.data.email || email;
+          verifyError.debugCode = error.data.debugCode;
+          throw verifyError;
+        }
+        throw error;
+      }
     },
     [saveToken],
   );
 
-  const register = useCallback(
-    async ({ fullName, email, phone, password }) => {
-      const result = await backendRegister({ fullName, email, phone, password });
+  const register = useCallback(async ({ fullName, email, phone, password }) => {
+    const result = await backendRegister({ fullName, email, phone, password });
+    return result;
+  }, []);
+
+  const completeEmailVerification = useCallback(
+    async ({ email, otp }) => {
+      const result = await backendVerifyEmail({ email, otp });
       saveToken(result.token);
       const normalized = normalizeBackendUser(result.user);
       setUser(normalized);
@@ -118,28 +167,64 @@ export function AuthProvider({ children }) {
 
   const requireAuth = useCallback(
     (action, reason = LOGIN_REASONS.default, redirectTo = null) => {
-      if (user) {
-        action?.();
-        return true;
+      if (!user) {
+        openLoginModal(reason, redirectTo);
+        return false;
       }
 
-      openLoginModal(reason, redirectTo);
-      return false;
+      if (!user.emailVerified) {
+        redirectToVerifyEmail({
+          email: user.email,
+          redirect: redirectTo || pathname || ROUTES.home,
+        });
+        return false;
+      }
+
+      action?.();
+      return true;
     },
-    [openLoginModal, user],
+    [openLoginModal, pathname, redirectToVerifyEmail, user],
+  );
+
+  const requireVerified = useCallback(
+    (redirectTo = null) => {
+      if (!user) {
+        openLoginModal(LOGIN_REASONS.default, redirectTo);
+        return false;
+      }
+
+      if (!user.emailVerified) {
+        redirectToVerifyEmail({
+          email: user.email,
+          redirect: redirectTo || pathname || ROUTES.home,
+        });
+        return false;
+      }
+
+      return true;
+    },
+    [openLoginModal, pathname, redirectToVerifyEmail, user],
   );
 
   const navigateWithAuth = useCallback(
     (href, reason = LOGIN_REASONS.default) => {
-      if (user) {
-        router.push(href);
-        return true;
+      if (!user) {
+        openLoginModal(reason, href);
+        return false;
       }
 
-      openLoginModal(reason, href);
-      return false;
+      if (!user.emailVerified) {
+        redirectToVerifyEmail({
+          email: user.email,
+          redirect: href || pathname || ROUTES.home,
+        });
+        return false;
+      }
+
+      router.push(href);
+      return true;
     },
-    [openLoginModal, router, user],
+    [openLoginModal, pathname, redirectToVerifyEmail, router, user],
   );
 
   const value = useMemo(
@@ -148,17 +233,24 @@ export function AuthProvider({ children }) {
       token,
       ready,
       isAuthenticated: Boolean(user),
+      isEmailVerified: Boolean(user?.emailVerified),
       login,
       register,
+      completeEmailVerification,
       updateProfile,
       logout,
       requireAuth,
+      requireVerified,
       navigateWithAuth,
+      redirectToVerifyEmail,
+      handleAuthError,
       openLoginModal,
       closeLoginModal,
     }),
     [
       closeLoginModal,
+      completeEmailVerification,
+      handleAuthError,
       login,
       register,
       updateProfile,
@@ -166,8 +258,10 @@ export function AuthProvider({ children }) {
       navigateWithAuth,
       openLoginModal,
       ready,
-      token,
+      redirectToVerifyEmail,
       requireAuth,
+      requireVerified,
+      token,
       user,
     ],
   );

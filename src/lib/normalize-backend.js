@@ -11,20 +11,16 @@ function conditionToGrade(condition) {
   }
 }
 
-function stationToText(station) {
-  if (!station) return "";
-  const { partnerName, city, address, lockerCode } = station;
-  const parts = [];
-  if (partnerName) parts.push(partnerName);
-  if (city) parts.push(city);
-  if (lockerCode) parts.push(`Locker #${lockerCode}`);
-  const head = parts.length ? parts.join(" — ") : "";
-  if (address) return `${head}${head ? " (" : ""}${address}${head ? ")" : ""}`;
-  return head || "";
+function shipsFromText(product, seller) {
+  return (
+    product?.pickupLocation ||
+    seller?.pickupLocation ||
+    seller?.pickupCity ||
+    ""
+  );
 }
 
-const DEFAULT_AVATAR =
-  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80";
+const DEFAULT_AVATAR = "/default-avatar.svg";
 
 export function normalizeBackendUser(user) {
   if (!user) return null;
@@ -36,6 +32,9 @@ export function normalizeBackendUser(user) {
     phone: user.phone || "",
     avatar: user.avatarUrl || user.avatar || DEFAULT_AVATAR,
     role: user.role || "user",
+    emailVerified: Boolean(user.emailVerified),
+    deliveryAddress: user.deliveryAddress || {},
+    pickupAddress: user.pickupAddress || {},
     rating: 0,
     bio: user.bio || "Trusted marketplace member",
     stats: [
@@ -59,38 +58,60 @@ export function normalizeBackendProduct(product) {
 
   const seller = product.seller;
   const category = product.category;
-  const station = product.station;
 
   const sellerId = seller?._id || seller?.id || "";
   const categoryName =
     typeof category === "string" ? category : category?.name || "";
+  const categorySlug =
+    typeof category === "object" && category ? category.slug || "" : "";
 
-  const stationText = stationToText(station);
+  const locationText = shipsFromText(product, seller);
 
   const conditionGrade = conditionToGrade(product.condition);
+  const attributeLabels = Array.isArray(product.attributeLabels)
+    ? product.attributeLabels
+    : [];
+
   const specs = [
+    { label: "Brand", value: product.brand || "—" },
     { label: "Condition", value: product.condition || "—" },
-    { label: "Station", value: stationText || "—" },
-    {
-      label: "Description",
-      value: product.description ? product.description.slice(0, 90) : "—",
-    },
+    ...attributeLabels.map((row) => ({
+      label: row.label,
+      value: row.value,
+    })),
+    { label: "Ships from", value: locationText || "—" },
   ];
+
+  const highlightSpecs = attributeLabels
+    .slice(0, 2)
+    .map((row) => row.value)
+    .filter(Boolean);
 
   return {
     id: product._id || product.id,
     title: product.title || "",
+    brand: product.brand || "",
     description: product.description || "",
     price: Number(product.price || 0),
     condition: product.condition || "Good",
+    attributes: product.attributes || {},
+    attributeLabels,
     images: Array.isArray(product.images) ? product.images : [],
     image: Array.isArray(product.images) ? product.images[0] : "",
     verified: Boolean(product.isVerified),
     premiumEscrow: Boolean(product.isVerified),
-    autoOffer: false,
+    autoOffer: product.acceptsOffers !== false,
+    acceptsOffers: product.acceptsOffers !== false,
     category: categoryName,
-    location: stationText,
-    station: stationText,
+    categorySlug,
+    categoryId: category?._id || category?.id || "",
+    stationId: "",
+    location: locationText,
+    station: locationText,
+    moderationStatus: product.moderationStatus || "pending",
+    rejectionReason: product.rejectionReason || "",
+    listingStatus: product.status || "active",
+    createdAt: product.createdAt || product.updatedAt || null,
     status:
       product.status === "reserved" || product.status === "sold"
         ? "escrow"
@@ -98,9 +119,9 @@ export function normalizeBackendProduct(product) {
     offers: 0,
     autoReleaseHours: null,
     seller: {
-      id: sellerId,
+      id: String(sellerId),
       name: seller?.fullName || seller?.name || "Seller",
-      avatar: seller?.avatarUrl || seller?.avatar || "",
+      avatar: seller?.avatarUrl || seller?.avatar || DEFAULT_AVATAR,
       rating: null,
       trades: null,
     },
@@ -109,6 +130,6 @@ export function normalizeBackendProduct(product) {
     conditionGrade,
     cta: product.isVerified ? "instant" : "details",
     specs,
+    highlightSpecs,
   };
 }
-

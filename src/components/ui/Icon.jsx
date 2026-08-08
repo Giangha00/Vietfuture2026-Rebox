@@ -107,6 +107,27 @@ const paths = {
       d="M4 6h16v10H4V6Zm-2 12h20"
     />
   ),
+  keyboard: (
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M4 7h16v10H4V7Zm3 3h.01M10 10h.01M14 10h.01M17 10h.01M7 14h10"
+    />
+  ),
+  mouse: (
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 3a5 5 0 0 1 5 5v5a5 5 0 0 1-10 0V8a5 5 0 0 1 5-5Zm0 0v4"
+    />
+  ),
+  monitor: (
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M4 5h16v11H4V5Zm4 14h8M12 16v3"
+    />
+  ),
   shirt: (
     <path
       strokeLinecap="round"
@@ -147,6 +168,13 @@ const paths = {
       strokeLinecap="round"
       strokeLinejoin="round"
       d="M21 8 12 3 3 8l9 5 9-5Zm0 0v8l-9 5-9-5V8"
+    />
+  ),
+  truck: (
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M3 7h11v10H3V7Zm11 3h4l3 3v4h-7V10ZM7 20a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm10 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"
     />
   ),
   tag: (
@@ -210,11 +238,16 @@ const paths = {
   ),
 };
 
-export default function Icon({ name, className = "", strokeWidth = 1.8 }) {
+export default function Icon({
+  name,
+  className = "",
+  strokeWidth = 1.8,
+  filled = false,
+}) {
   return (
     <svg
       viewBox="0 0 24 24"
-      fill="none"
+      fill={filled ? "currentColor" : "none"}
       stroke="currentColor"
       strokeWidth={strokeWidth}
       className={["size-5 shrink-0", className].filter(Boolean).join(" ")}

@@ -13,22 +13,36 @@ export default function AuthGateButton({
   ...props
 }) {
   const router = useRouter();
-  const { isAuthenticated, navigateWithAuth } = useAuth();
+  const {
+    isAuthenticated,
+    isEmailVerified,
+    user,
+    openLoginModal,
+    redirectToVerifyEmail,
+  } = useAuth();
 
   const handleClick = (event) => {
     event.preventDefault();
 
-    if (isAuthenticated) {
-      if (onAuthedClick) {
-        onAuthedClick();
-        return;
-      }
-
-      if (href) router.push(href);
+    if (!isAuthenticated) {
+      openLoginModal(reason, href || null);
       return;
     }
 
-    navigateWithAuth(href, reason);
+    if (!isEmailVerified) {
+      redirectToVerifyEmail({
+        email: user?.email,
+        redirect: href || undefined,
+      });
+      return;
+    }
+
+    if (onAuthedClick) {
+      onAuthedClick();
+      return;
+    }
+
+    if (href) router.push(href);
   };
 
   return (

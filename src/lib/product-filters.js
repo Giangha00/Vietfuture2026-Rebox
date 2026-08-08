@@ -1,18 +1,16 @@
-export const FILTER_CATEGORIES = ["Tech", "Fashion", "Photography"];
-
 export const FILTER_CONDITIONS = ["Like New", "Good", "Fair"];
 
 export const STATION_FILTERS = {
   all: "All Locations",
-  q1: "District 1",
-  td: "Thảo Điền",
-  q7: "District 7",
+  hcm: "Ho Chi Minh",
+  hn: "Ha Noi",
+  dn: "Da Nang",
 };
 
 const STATION_MATCHERS = {
-  q1: /district 1|quận 1|q1|nguyễn huệ|nguyen hue|le loi|central station alpha/i,
-  td: /thảo điền|thao dien|q2/i,
-  q7: /quận 7|district 7|q7|phú mỹ hưng|phu my hung/i,
+  hcm: /ho chi minh|hồ chí minh|hcmc|saigon|sài gòn/i,
+  hn: /ha noi|hà nội|hanoi/i,
+  dn: /da nang|đà nẵng/i,
 };
 
 function toArray(value) {
@@ -67,12 +65,15 @@ export function filterProducts(products, searchParams = {}) {
       (product) =>
         product.title.toLowerCase().includes(query) ||
         product.category.toLowerCase().includes(query) ||
+        (product.brand || "").toLowerCase().includes(query) ||
         product.description?.toLowerCase().includes(query),
     );
   }
 
   if (params.categories.length > 0) {
-    result = result.filter((product) => params.categories.includes(product.category));
+    result = result.filter((product) =>
+      params.categories.includes(product.category),
+    );
   }
 
   if (params.condition) {
@@ -94,7 +95,8 @@ export function filterProducts(products, searchParams = {}) {
     const matcher = STATION_MATCHERS[params.station];
     if (matcher) {
       result = result.filter(
-        (product) => matcher.test(product.location) || matcher.test(product.station),
+        (product) =>
+          matcher.test(product.location) || matcher.test(product.station),
       );
     }
   }
@@ -133,13 +135,16 @@ export function buildProductsQuery(currentParams, updates = {}) {
   };
 
   if (merged.q) params.set("q", merged.q);
-  if (merged.categories.length > 0) params.set("category", merged.categories.join(","));
+  if (merged.categories.length > 0)
+    params.set("category", merged.categories.join(","));
   if (merged.condition) params.set("condition", merged.condition);
   if (merged.minPrice) params.set("minPrice", merged.minPrice);
   if (merged.maxPrice) params.set("maxPrice", merged.maxPrice);
-  if (merged.station && merged.station !== "all") params.set("station", merged.station);
+  if (merged.station && merged.station !== "all")
+    params.set("station", merged.station);
   merged.filters.forEach((filter) => params.append("filter", filter));
-  if (merged.sort && merged.sort !== "relevance") params.set("sort", merged.sort);
+  if (merged.sort && merged.sort !== "relevance")
+    params.set("sort", merged.sort);
   if (merged.page && merged.page > 1) params.set("page", String(merged.page));
 
   return params.toString();

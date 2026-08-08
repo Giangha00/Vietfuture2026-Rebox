@@ -4,21 +4,25 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Checkbox from "@/components/ui/Checkbox";
 import Select from "@/components/ui/Select";
+import Icon from "@/components/ui/Icon";
 import {
-  FILTER_CATEGORIES,
   FILTER_CONDITIONS,
   STATION_FILTERS,
   buildProductsQuery,
   parseProductSearchParams,
   searchParamsToObject,
 } from "@/lib/product-filters";
+import { fetchBackendCategories } from "@/lib/rebox-backend-api";
 
-export default function SidebarFilters() {
+export default function SidebarFilters({ categories: initialCategories = [] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const current = parseProductSearchParams(searchParamsToObject(searchParams));
 
+  const [categories, setCategories] = useState(
+    initialCategories.map((c) => (typeof c === "string" ? c : c.name)).filter(Boolean),
+  );
   const [minPrice, setMinPrice] = useState(current.minPrice);
   const [maxPrice, setMaxPrice] = useState(current.maxPrice);
 
@@ -26,6 +30,39 @@ export default function SidebarFilters() {
     setMinPrice(current.minPrice);
     setMaxPrice(current.maxPrice);
   }, [current.minPrice, current.maxPrice]);
+
+  useEffect(() => {
+    if (initialCategories.length > 0) {
+      setCategories(
+        initialCategories
+          .map((c) => (typeof c === "string" ? c : c.name))
+          .filter(Boolean),
+      );
+      return;
+    }
+
+    let cancelled = false;
+    fetchBackendCategories()
+      .then((list) => {
+        if (cancelled) return;
+        setCategories(
+          (Array.isArray(list) ? list : [])
+            .filter((c) => {
+              const slug = String(c.slug || "").toLowerCase();
+              const name = String(c.name || "").toLowerCase();
+              return name && slug !== "more" && name !== "more";
+            })
+            .map((c) => c.name),
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setCategories([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [initialCategories]);
 
   function pushFilters(updates) {
     const query = buildProductsQuery(searchParamsToObject(searchParams), {
@@ -36,19 +73,9 @@ export default function SidebarFilters() {
   }
 
   function toggleCategory(name) {
-    let next;
-
-    if (current.categories.length === 0) {
-      next = FILTER_CATEGORIES.filter((item) => item !== name);
-    } else if (current.categories.includes(name)) {
-      next = current.categories.filter((item) => item !== name);
-    } else {
-      next = [...current.categories, name];
-    }
-
-    if (next.length === FILTER_CATEGORIES.length) {
-      next = [];
-    }
+    const next = current.categories.includes(name)
+      ? current.categories.filter((item) => item !== name)
+      : [...current.categories, name];
 
     pushFilters({ categories: next });
   }
@@ -57,23 +84,31 @@ export default function SidebarFilters() {
     pushFilters({ minPrice, maxPrice });
   }
 
+  function clearAll() {
+    router.push(pathname);
+  }
+
+  const allSelected = current.categories.length === 0;
+
   return (
-    <aside className="space-y-8 rounded-2xl border border-rb-border bg-white p-5">
+    <aside className="space-y-7 rounded-2xl border border-rb-border bg-white p-5">
       <div>
         <h3 className="mb-3 text-sm font-bold uppercase tracking-wider text-rb-ink">
-          Category
+          Categories
         </h3>
         <div className="space-y-2.5">
-          {FILTER_CATEGORIES.map((name) => (
+          <Checkbox
+            id="cat-all"
+            label="All products"
+            checked={allSelected}
+            onChange={() => pushFilters({ categories: [] })}
+          />
+          {categories.map((name) => (
             <Checkbox
               key={name}
               id={`cat-${name}`}
               label={name}
-              checked={
-                current.categories.length === 0
-                  ? true
-                  : current.categories.includes(name)
-              }
+              checked={current.categories.includes(name)}
               onChange={() => toggleCategory(name)}
             />
           ))}
@@ -82,79 +117,81 @@ export default function SidebarFilters() {
 
       <div>
         <h3 className="mb-3 text-sm font-bold uppercase tracking-wider text-rb-ink">
-          AI Condition Grade
-        </h3>
-        <div className="flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={() => pushFilters({ condition: "" })}
-            className={[
-              "rounded-xl px-3 py-2 text-left text-sm font-medium transition",
-              !current.condition
-                ? "bg-rb-red-soft text-rb-red"
-                : "bg-stone-50 text-rb-muted hover:bg-rb-pink",
-            ].join(" ")}
-          >
-            All conditions
-          </button>
-          {FILTER_CONDITIONS.map((condition) => (
-            <button
-              key={condition}
-              type="button"
-              onClick={() => pushFilters({ condition })}
-              className={[
-                "rounded-xl px-3 py-2 text-left text-sm font-medium transition",
-                current.condition === condition
-                  ? "bg-rb-red-soft text-rb-red"
-                  : "bg-stone-50 text-rb-muted hover:bg-rb-pink",
-              ].join(" ")}
-            >
-              {condition}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <h3 className="mb-3 text-sm font-bold uppercase tracking-wider text-rb-ink">
-          Price Range
+          Price range
         </h3>
         <div className="flex items-center gap-2">
           <input
             value={minPrice}
             onChange={(event) => setMinPrice(event.target.value)}
-            onBlur={applyPriceRange}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") applyPriceRange();
-            }}
-            placeholder="Min"
+            placeholder="From"
             inputMode="numeric"
-            className="w-full rounded-xl border border-rb-border px-3 py-2 text-sm outline-none focus:border-rb-red"
+            className="w-full rounded-xl border border-rb-border bg-rb-surface px-3 py-2 text-sm outline-none focus:border-rb-green"
           />
-          <span className="text-rb-muted">—</span>
           <input
             value={maxPrice}
             onChange={(event) => setMaxPrice(event.target.value)}
-            onBlur={applyPriceRange}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") applyPriceRange();
-            }}
-            placeholder="Max"
+            placeholder="To"
             inputMode="numeric"
-            className="w-full rounded-xl border border-rb-border px-3 py-2 text-sm outline-none focus:border-rb-red"
+            className="w-full rounded-xl border border-rb-border bg-rb-surface px-3 py-2 text-sm outline-none focus:border-rb-green"
           />
+        </div>
+        <button
+          type="button"
+          onClick={applyPriceRange}
+          className="mt-2 w-full rounded-xl bg-rb-mint px-3 py-2 text-sm font-semibold text-rb-green hover:bg-rb-green-soft"
+        >
+          Apply
+        </button>
+      </div>
+
+      <div>
+        <h3 className="mb-3 text-sm font-bold uppercase tracking-wider text-rb-ink">
+          Condition
+        </h3>
+        <div className="flex flex-wrap gap-2">
+          {["New", ...FILTER_CONDITIONS].map((condition) => {
+            const active = current.condition === condition;
+            return (
+              <button
+                key={condition}
+                type="button"
+                onClick={() =>
+                  pushFilters({ condition: active ? "" : condition })
+                }
+                className={[
+                  "rounded-full px-3.5 py-1.5 text-sm font-medium transition",
+                  active
+                    ? "bg-rb-green text-white"
+                    : "border border-rb-border bg-white text-rb-muted hover:border-rb-green hover:text-rb-green",
+                ].join(" ")}
+              >
+                {condition}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       <Select
-        label="ReBox Station"
+        label="Location"
         value={current.station}
         onChange={(event) => pushFilters({ station: event.target.value })}
-        options={Object.entries(STATION_FILTERS).map(([value, label]) => ({
-          value,
-          label,
-        }))}
+        options={[
+          { value: "all", label: "Nationwide" },
+          ...Object.entries(STATION_FILTERS)
+            .filter(([value]) => value !== "all")
+            .map(([value, label]) => ({ value, label })),
+        ]}
       />
+
+      <button
+        type="button"
+        onClick={clearAll}
+        className="inline-flex items-center gap-2 text-sm font-semibold text-rb-danger hover:underline"
+      >
+        <Icon name="x" className="size-4" />
+        Clear all filters
+      </button>
     </aside>
   );
 }

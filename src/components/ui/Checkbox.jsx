@@ -17,7 +17,7 @@ export default function Checkbox({
         type="checkbox"
         checked={checked}
         onChange={onChange}
-        className="size-4 rounded border-rb-border accent-rb-red"
+        className="size-4 rounded border-rb-border accent-rb-green"
       />
       {label}
     </label>

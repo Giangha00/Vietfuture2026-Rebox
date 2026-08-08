@@ -1,8 +1,10 @@
 const variants = {
-  info: "border-l-rb-red bg-rb-red-soft text-rb-ink",
+  info: "border-l-rb-green bg-rb-green-soft text-rb-ink",
   note: "border-l-sky-500 bg-sky-50 text-sky-950",
   warning:
-    "border border-dashed border-rb-red/50 bg-orange-50 text-rb-ink rounded-xl border-l-0",
+    "border border-dashed border-rb-green/40 bg-orange-50 text-rb-ink rounded-xl border-l-0",
+  danger: "border-l-rb-danger bg-rb-danger-soft text-rb-ink",
+  success: "border-l-rb-green bg-rb-mint text-rb-ink",
 };
 
 export default function Alert({

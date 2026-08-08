@@ -60,7 +60,7 @@ export default function Modal({
       >
         <div className="mb-4 flex items-start justify-between gap-3">
           {title ? (
-            <h2 id={titleId} className="font-display text-xl font-bold text-rb-ink">
+            <h2 id={titleId} className="font-sans text-xl font-bold text-rb-ink">
               {title}
             </h2>
           ) : (
@@ -69,7 +69,7 @@ export default function Modal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-1.5 text-rb-muted transition hover:bg-rb-pink hover:text-rb-ink"
+            className="rounded-full p-1.5 text-rb-muted transition hover:bg-rb-surface hover:text-rb-ink"
             aria-label="Close"
           >
             <Icon name="x" className="size-5" />

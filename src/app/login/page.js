@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import AuthLayout from "@/components/layout/AuthLayout";
 import LoginForm from "@/components/auth/LoginForm";
 import SocialAuth from "@/components/auth/SocialAuth";
-import TrustBadges from "@/components/auth/TrustBadges";
 import Link from "next/link";
 import { ROUTES } from "@/lib/routes";
 
@@ -14,31 +13,30 @@ export default function LoginPage() {
   return (
     <AuthLayout>
       <div className="w-full max-w-md">
+        <p className="mb-6 text-center text-sm text-rb-muted">
+          Circular business model for a sustainable future.
+        </p>
         <div className="rounded-2xl border border-rb-border bg-white p-8 shadow-sm">
-          <div className="mb-8 text-center">
-            <p className="font-display text-3xl font-bold text-rb-red">
-              ReBox
-            </p>
-            <h1 className="mt-3 text-2xl font-bold text-rb-ink">Welcome Back</h1>
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-rb-ink">Welcome back</h1>
             <p className="mt-2 text-sm text-rb-muted">
-              Enter your details to access your secure trading hub.
+              Log in to your ReBox account
             </p>
           </div>
-          <Suspense fallback={<div className="h-40 animate-pulse rounded-xl bg-rb-pink/60" />}>
+          <Suspense fallback={<div className="h-40 animate-pulse rounded-xl bg-rb-surface" />}>
             <LoginForm />
           </Suspense>
           <SocialAuth />
           <p className="mt-6 text-center text-sm text-rb-muted">
-            New to the supermarket?{" "}
+            Don&apos;t have an account?{" "}
             <Link
               href={ROUTES.signup}
-              className="font-bold text-rb-red hover:underline"
+              className="font-bold text-rb-green hover:underline"
             >
-              Sign up for a ReBox account
+              Sign up
             </Link>
           </p>
         </div>
-        <TrustBadges />
       </div>
     </AuthLayout>
   );
