@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Alert from "@/components/ui/Alert";
 import Checkbox from "@/components/ui/Checkbox";
+import Icon from "@/components/ui/Icon";
 import { useAuth } from "@/context/AuthContext";
 import { formatPriceInput, sanitizePriceInput, validateProductPrice } from "@/lib/money";
 import { ROUTES } from "@/lib/routes";
@@ -22,11 +23,17 @@ import {
   validateRequiredText,
   validateSelect,
 } from "@/lib/validation";
+import {
+  MAX_IMAGE_LABEL,
+  imageFilesFromList,
+  validateImageFile,
+} from "@/lib/image-upload";
 
 export default function EditListingForm({ productId }) {
   const router = useRouter();
   const { token, isAuthenticated, ready, handleAuthError, requireVerified } =
     useAuth();
+  const fileInputRef = useRef(null);
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -43,6 +50,7 @@ export default function EditListingForm({ productId }) {
   const [existingImages, setExistingImages] = useState([]);
   const [newFiles, setNewFiles] = useState([]);
   const [acceptsOffers, setAcceptsOffers] = useState(true);
+  const [photosDragOver, setPhotosDragOver] = useState(false);
 
   useEffect(() => {
     if (!ready) return;
@@ -145,6 +153,37 @@ export default function EditListingForm({ productId }) {
         </div>
       </div>
     );
+  }
+
+  function applyNewPhotoFiles(fileList) {
+    const images = imageFilesFromList(fileList);
+    if (images.length === 0) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        photos: "Choose or drop image files only.",
+      }));
+      return;
+    }
+
+    const accepted = [];
+    for (const file of images) {
+      const check = validateImageFile(file, { field: "Photo" });
+      if (!check.ok) {
+        setFieldErrors((prev) => ({ ...prev, photos: check.message }));
+        if (accepted.length === 0) return;
+        break;
+      }
+      accepted.push(file);
+    }
+    if (accepted.length === 0) return;
+
+    setNewFiles(accepted);
+    setFieldErrors((prev) => {
+      if (!prev.photos) return prev;
+      const next = { ...prev };
+      delete next.photos;
+      return next;
+    });
   }
 
   return (
@@ -385,19 +424,55 @@ export default function EditListingForm({ productId }) {
           Add more photos
         </label>
         <input
+          ref={fileInputRef}
           type="file"
           accept="image/*"
           multiple
+          className="hidden"
           onChange={(e) => {
-            setNewFiles(Array.from(e.target.files || []));
-            setFieldErrors((prev) => {
-              if (!prev.photos) return prev;
-              const next = { ...prev };
-              delete next.photos;
-              return next;
-            });
+            applyNewPhotoFiles(e.target.files);
+            e.target.value = "";
           }}
         />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setPhotosDragOver(true);
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setPhotosDragOver(false);
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setPhotosDragOver(false);
+            applyNewPhotoFiles(e.dataTransfer?.files);
+          }}
+          className={[
+            "flex min-h-30 w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed px-4 py-6 text-sm transition-colors",
+            photosDragOver
+              ? "border-rb-green bg-rb-green/5 text-rb-green"
+              : "border-rb-border bg-rb-surface text-rb-muted hover:border-rb-green hover:text-rb-green",
+          ].join(" ")}
+        >
+          <Icon name="camera" className="size-6" />
+          <span className="font-medium">
+            {photosDragOver
+              ? "Drop photos here"
+              : "Click or drag and drop photos"}
+          </span>
+          <span className="text-xs">
+            Max {MAX_IMAGE_LABEL} each
+            {newFiles.length > 0
+              ? ` · ${newFiles.length} file${newFiles.length === 1 ? "" : "s"} selected`
+              : ""}
+          </span>
+        </button>
         {fieldErrors.photos ? (
           <p className="text-xs font-medium text-red-600" role="alert">
             {fieldErrors.photos}

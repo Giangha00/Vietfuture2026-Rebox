@@ -5,12 +5,16 @@ import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
-import Alert from "@/components/ui/Alert";
 import Icon from "@/components/ui/Icon";
 import Checkbox from "@/components/ui/Checkbox";
 import Stepper from "@/components/ui/Stepper";
 import Logo from "@/components/layout/Logo";
-import { formatMoney, formatPriceInput, sanitizePriceInput, validateProductPrice } from "@/lib/money";
+import {
+  formatMoney,
+  formatPriceInput,
+  sanitizePriceInput,
+  validateProductPrice,
+} from "@/lib/money";
 import { ROUTES } from "@/lib/routes";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -20,6 +24,7 @@ import {
   validateAttributeFields,
 } from "@/lib/category-schemas";
 import {
+  backendAiListingDraft,
   backendCreateProduct,
   backendUploadImages,
   fetchBackendCategories,
@@ -31,21 +36,21 @@ import {
   validateRequiredText,
   validateSelect,
 } from "@/lib/validation";
+import {
+  MAX_IMAGE_LABEL,
+  imageFilesFromList,
+  validateImageFile,
+} from "@/lib/image-upload";
 
 const STEP_META = [
-  { id: 1, label: "Information" },
-  { id: 2, label: "Condition" },
-  { id: 3, label: "Images" },
-  { id: 4, label: "Price" },
-  { id: 5, label: "Pickup address" },
-  { id: 6, label: "Confirmation" },
+  { id: 1, label: "Photos" },
+  { id: 2, label: "AI analysis" },
+  { id: 3, label: "Review details" },
+  { id: 4, label: "Pickup address" },
+  { id: 5, label: "Confirmation" },
 ];
 const PHOTO_SLOTS = 4;
-const SUGGESTIONS = [
-  "Full accessories",
-  "Under warranty",
-  "Original owner",
-];
+const SUGGESTIONS = ["Full accessories", "Under warranty", "Original owner"];
 
 const emptyPickupAddress = {
   fullName: "",
@@ -78,6 +83,7 @@ export default function PostItemForm() {
   const [categories, setCategories] = useState([]);
   const [metaLoading, setMetaLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const [formError, setFormError] = useState("");
 
@@ -90,11 +96,17 @@ export default function PostItemForm() {
   const [acceptsOffers, setAcceptsOffers] = useState(true);
   const [attributeValues, setAttributeValues] = useState({});
   const [photos, setPhotos] = useState(() => Array(PHOTO_SLOTS).fill(null));
+  const [uploadedUrls, setUploadedUrls] = useState([]);
+  const [aiMeta, setAiMeta] = useState(null);
+  const [aiFlags, setAiFlags] = useState([]);
+  const [aiRisk, setAiRisk] = useState("");
   const [pickupAddress, setPickupAddress] = useState(emptyPickupAddress);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
 
   const fileInputRefs = useRef([]);
   const photosRef = useRef(photos);
   photosRef.current = photos;
+  const skipAttrResetRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -104,13 +116,12 @@ export default function PostItemForm() {
         const cats = await fetchBackendCategories();
         if (!cancelled) {
           setCategories(cats);
-          if (cats[0]?._id) setCategoryId((current) => current || cats[0]._id);
+          // Category is chosen by AI after photo analysis — do not pre-select.
         }
       } finally {
         if (!cancelled) setMetaLoading(false);
       }
     })();
-
     return () => {
       cancelled = true;
     };
@@ -143,7 +154,6 @@ export default function PostItemForm() {
     () => categories.find((c) => c._id === categoryId) || null,
     [categories, categoryId],
   );
-
   const categorySlug = selectedCategory?.slug || "";
   const categorySchema = useMemo(
     () => getCategorySchema(categorySlug),
@@ -152,6 +162,10 @@ export default function PostItemForm() {
 
   useEffect(() => {
     if (!categorySlug) return;
+    if (skipAttrResetRef.current) {
+      skipAttrResetRef.current = false;
+      return;
+    }
     setAttributeValues(emptyAttributesForSlug(categorySlug));
   }, [categorySlug]);
 
@@ -181,6 +195,13 @@ export default function PostItemForm() {
   }
 
   function setPhotoAt(index, file) {
+    if (file) {
+      const check = validateImageFile(file, { field: "Photo" });
+      if (!check.ok) {
+        setFieldErrors((prev) => ({ ...prev, photos: check.message }));
+        return;
+      }
+    }
     setPhotos((current) => {
       const next = [...current];
       const previous = next[index];
@@ -190,7 +211,70 @@ export default function PostItemForm() {
         : null;
       return next;
     });
+    setUploadedUrls([]);
+    setAiMeta(null);
     clearField("photos");
+  }
+
+  function applyPhotoFiles(files, startIndex = 0) {
+    const images = imageFilesFromList(files);
+    if (images.length === 0) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        photos: "Drop image files only (JPEG, PNG, WebP, or GIF).",
+      }));
+      return;
+    }
+
+    const accepted = [];
+    for (const file of images) {
+      const check = validateImageFile(file, { field: "Photo" });
+      if (!check.ok) {
+        setFieldErrors((prev) => ({ ...prev, photos: check.message }));
+        if (accepted.length === 0) return;
+        break;
+      }
+      accepted.push(file);
+    }
+    if (accepted.length === 0) return;
+
+    setPhotos((current) => {
+      const next = [...current];
+      let slot = Math.max(0, Math.min(startIndex, PHOTO_SLOTS - 1));
+      for (const file of accepted) {
+        while (slot < PHOTO_SLOTS && next[slot] && slot !== startIndex) {
+          slot += 1;
+        }
+        if (slot >= PHOTO_SLOTS) break;
+        const previous = next[slot];
+        if (previous?.previewUrl) URL.revokeObjectURL(previous.previewUrl);
+        next[slot] = { file, previewUrl: URL.createObjectURL(file) };
+        slot += 1;
+      }
+      return next;
+    });
+    setUploadedUrls([]);
+    setAiMeta(null);
+    clearField("photos");
+  }
+
+  function handlePhotoDragOver(event, index) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (dragOverIndex !== index) setDragOverIndex(index);
+  }
+
+  function handlePhotoDragLeave(event, index) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (dragOverIndex === index) setDragOverIndex(null);
+  }
+
+  function handlePhotoDrop(event, index) {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragOverIndex(null);
+    applyPhotoFiles(event.dataTransfer?.files, index);
   }
 
   function appendSuggestion(text) {
@@ -202,10 +286,78 @@ export default function PostItemForm() {
     clearField("description");
   }
 
+  function applyAiDraft(draft) {
+    if (!draft) return;
+    skipAttrResetRef.current = true;
+    if (draft.categoryId) {
+      setCategoryId(String(draft.categoryId));
+    } else if (draft.categorySlug) {
+      const match = categories.find((c) => c.slug === draft.categorySlug);
+      if (match?._id) setCategoryId(String(match._id));
+    }
+    if (draft.title) setTitle(draft.title);
+    if (draft.brand) setBrand(draft.brand);
+    if (draft.description) setDescription(draft.description);
+    if (draft.condition) setCondition(draft.condition);
+    if (draft.suggestedPrice != null && draft.suggestedPrice !== "") {
+      setPrice(String(draft.suggestedPrice));
+    } else if (draft.categorySlug === "mice") {
+      setPrice("25");
+    } else if (draft.categorySlug === "keyboards") {
+      setPrice("45");
+    } else if (draft.categorySlug === "monitors") {
+      setPrice("120");
+    }
+    if (draft.attributes && typeof draft.attributes === "object") {
+      const slug = draft.categorySlug || categorySlug;
+      setAttributeValues({
+        ...emptyAttributesForSlug(slug),
+        ...draft.attributes,
+      });
+    }
+    setAiFlags(Array.isArray(draft.flags) ? draft.flags : []);
+    setAiRisk(draft.riskScore || "");
+  }
+
+  async function runAiAnalysis() {
+    if (!token) return;
+    setAnalyzing(true);
+    setFormError("");
+    try {
+      let urls = uploadedUrls;
+      if (urls.length === 0) {
+        urls = await backendUploadImages({
+          token,
+          files: selectedPhotos.map((p) => p.file),
+        });
+        setUploadedUrls(urls);
+      }
+      const { draft, aiMeta: meta } = await backendAiListingDraft({
+        token,
+        images: urls,
+        // Always let AI detect category from photos (no manual hint).
+        categorySlug: null,
+      });
+      setAiMeta(meta);
+      applyAiDraft(draft);
+    } catch (err) {
+      if (handleAuthError(err, { redirect: ROUTES.postItem })) return;
+      setFormError(err?.message || "AI analysis failed. You can still fill the form manually.");
+    } finally {
+      setAnalyzing(false);
+    }
+  }
+
   function validateStep(stepIndex) {
     const errors = {};
 
     if (stepIndex === 0) {
+      if (selectedPhotos.length === 0) {
+        errors.photos = `Upload at least 1 clear product photo (max ${MAX_IMAGE_LABEL} each).`;
+      }
+    }
+
+    if (stepIndex === 2) {
       const titleCheck = validateRequiredText(title, {
         field: "Product name",
         min: 3,
@@ -226,29 +378,15 @@ export default function PostItemForm() {
       if (!brandCheck.ok) errors.brand = brandCheck.message;
       if (!categoryCheck.ok) errors.categoryId = categoryCheck.message;
       if (!descriptionCheck.ok) errors.description = descriptionCheck.message;
-
-      const attrs = validateAttributeFields(categorySlug, attributeValues);
-      Object.assign(errors, attrs.errors);
-    }
-
-    if (stepIndex === 1) {
       if (!condition) {
         errors.condition = "Select a condition grade (Like New, Good, or Fair).";
       }
-    }
-
-    if (stepIndex === 2) {
-      if (selectedPhotos.length === 0) {
-        errors.photos = "Upload at least 1 clear product photo (max 5MB each).";
-      }
+      const priceError = validateProductPrice(price);
+      if (priceError) errors.price = priceError;
+      Object.assign(errors, validateAttributeFields(categorySlug, attributeValues).errors);
     }
 
     if (stepIndex === 3) {
-      const priceError = validateProductPrice(price);
-      if (priceError) errors.price = priceError;
-    }
-
-    if (stepIndex === 4) {
       const addressCheck = validateAddress(pickupAddress, {
         requiredFields: ["line1", "city"],
         labels: {
@@ -258,9 +396,6 @@ export default function PostItemForm() {
         },
       });
       Object.assign(errors, addressCheck.errors);
-      if (pickupAddress.phone) {
-        // optional but if filled must be valid — validateAddress already handles when not required
-      }
     }
 
     return errors;
@@ -274,9 +409,9 @@ export default function PostItemForm() {
         </span>
         <h2 className="text-2xl font-bold text-rb-ink">Submitted for review</h2>
         <p className="mt-2 text-rb-muted">
-          Your listing is waiting for admin approval. You&apos;ll get a notification
-          when it goes live or if changes are needed. Keep the item at your pickup
-          address — a courier will collect it after a sale.
+          Your listing is waiting for admin approval. AI pre-check notes were attached
+          for reviewers. You&apos;ll get a notification when it goes live or if changes
+          are needed.
         </p>
         <div className="mt-6 flex justify-center gap-3">
           <Button href={ROUTES.profile}>Go to Profile</Button>
@@ -298,29 +433,138 @@ export default function PostItemForm() {
             Post a product
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <button type="button" className="text-sm font-medium text-rb-muted hover:text-rb-green">
-            Save draft
-          </button>
-          <Link
-            href={ROUTES.home}
-            className="flex size-9 items-center justify-center rounded-full text-rb-muted hover:bg-rb-surface hover:text-rb-ink"
-            aria-label="Close"
-          >
-            <Icon name="x" className="size-5" />
-          </Link>
-        </div>
+        <Link
+          href={ROUTES.home}
+          className="flex size-9 items-center justify-center rounded-full text-rb-muted hover:bg-rb-surface hover:text-rb-ink"
+          aria-label="Close"
+        >
+          <Icon name="x" className="size-5" />
+        </Link>
       </div>
 
       <Stepper steps={STEP_META} current={step + 1} />
 
       <div className="rounded-2xl border border-rb-border bg-white p-6 sm:p-8">
         {step === 0 && (
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-2xl font-bold text-rb-green">Product photos</h2>
+              <p className="mt-2 text-sm text-rb-muted">
+                Click or drag and drop 1–{PHOTO_SLOTS} clear photos of the product
+                (max {MAX_IMAGE_LABEL} each). AI will detect the category and fill
+                listing details — you can edit everything on the next steps.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {photos.map((photo, index) => (
+                <div
+                  key={index}
+                  className="relative"
+                  onDragOver={(e) => handlePhotoDragOver(e, index)}
+                  onDragLeave={(e) => handlePhotoDragLeave(e, index)}
+                  onDrop={(e) => handlePhotoDrop(e, index)}
+                >
+                  <input
+                    ref={(el) => {
+                      fileInputRefs.current[index] = el;
+                    }}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) setPhotoAt(index, file);
+                      e.target.value = "";
+                    }}
+                  />
+                  {photo ? (
+                    <div
+                      className={[
+                        "relative aspect-square overflow-hidden rounded-2xl border border-rb-border",
+                        dragOverIndex === index ? "ring-2 ring-rb-green" : "",
+                      ].join(" ")}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={photo.previewUrl}
+                        alt={`Product ${index + 1}`}
+                        className="size-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-2 top-2 rounded-full bg-white/90 px-2 py-1 text-xs font-semibold text-rb-ink"
+                        onClick={() => setPhotoAt(index, null)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => fileInputRefs.current[index]?.click()}
+                      className={[
+                        "flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed bg-rb-surface text-sm hover:border-rb-green hover:text-rb-green",
+                        dragOverIndex === index
+                          ? "border-rb-green text-rb-green ring-2 ring-rb-green/30"
+                          : "border-rb-border text-rb-muted",
+                      ].join(" ")}
+                    >
+                      <Icon name="camera" className="size-6" />
+                      {dragOverIndex === index ? "Drop photo" : "Add photo"}
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            {fieldErrors.photos ? (
+              <p className="text-xs font-medium text-red-600" role="alert">
+                {fieldErrors.photos}
+              </p>
+            ) : null}
+          </div>
+        )}
+
+        {step === 1 && (
           <div className="space-y-5">
             <div>
-              <h2 className="text-2xl font-bold text-rb-green">What are you selling?</h2>
+              <h2 className="text-2xl font-bold text-rb-green">AI analysis</h2>
               <p className="mt-2 text-sm text-rb-muted">
-                Keyboards, mice, and monitors — add the specs buyers filter by.
+                Local ReBox model pre-checks your photos and drafts listing fields.
+                This is not final approval — you edit next, then an admin reviews.
+              </p>
+            </div>
+            {analyzing ? (
+              <div className="rounded-2xl border border-rb-border bg-rb-surface p-6 text-center">
+                <p className="font-semibold text-rb-ink">Analyzing photos…</p>
+                <p className="mt-2 text-sm text-rb-muted">
+                  On Mac M1 this can take a while. Please keep this tab open.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3 rounded-2xl border border-rb-border bg-rb-surface/60 p-5">
+                <p className="text-sm text-rb-ink">
+                  <strong>Risk:</strong> {aiRisk || "—"} · <strong>Flags:</strong>{" "}
+                  {aiFlags.length ? aiFlags.join(", ") : "none"}
+                </p>
+                <p className="text-sm text-rb-muted">
+                  Draft title: {title || "—"}
+                </p>
+                <Button type="button" variant="outline" onClick={runAiAnalysis}>
+                  Re-run AI analysis
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-2xl font-bold text-rb-green">Review & edit details</h2>
+              <p className="mt-2 text-sm text-rb-muted">
+                AI filled these fields from your photos. Correct anything before
+                continuing.
               </p>
             </div>
             <Input
@@ -331,11 +575,6 @@ export default function PostItemForm() {
                 setTitle(e.target.value);
                 clearField("title");
               }}
-              hint={
-                fieldErrors.title
-                  ? undefined
-                  : "Include model and standout features. Min 3 characters."
-              }
               error={fieldErrors.title}
               required
               minLength={3}
@@ -372,14 +611,9 @@ export default function PostItemForm() {
 
             {categorySchema ? (
               <div className="space-y-4 rounded-2xl border border-rb-border bg-rb-surface/60 p-4">
-                <div>
-                  <p className="text-sm font-semibold text-rb-ink">
-                    {selectedCategory?.name} specs
-                  </p>
-                  <p className="mt-1 text-xs text-rb-muted">
-                    Required fields help buyers find your listing faster.
-                  </p>
-                </div>
+                <p className="text-sm font-semibold text-rb-ink">
+                  {selectedCategory?.name} specs
+                </p>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {categorySchema.fields.map((field) => {
                     if (field.type === "boolean") {
@@ -414,7 +648,6 @@ export default function PostItemForm() {
                         />
                       );
                     }
-
                     if (field.type === "number") {
                       return (
                         <Input
@@ -422,11 +655,6 @@ export default function PostItemForm() {
                           label={`${field.label}${field.required ? " *" : ""}`}
                           type="number"
                           inputMode="numeric"
-                          placeholder={
-                            field.min != null && field.max != null
-                              ? `${field.min}–${field.max}`
-                              : ""
-                          }
                           value={attributeValues[field.key] ?? ""}
                           onChange={(e) => setAttribute(field.key, e.target.value)}
                           error={fieldErrors[field.key]}
@@ -436,7 +664,6 @@ export default function PostItemForm() {
                         />
                       );
                     }
-
                     return (
                       <Select
                         key={field.key}
@@ -456,13 +683,53 @@ export default function PostItemForm() {
               </div>
             ) : null}
 
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-[11px] font-bold uppercase tracking-[0.08em] text-rb-muted">
-                  Product description *
-                </label>
-                <span className="text-xs text-rb-muted">{description.length} / 2000</span>
+            <div>
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.08em] text-rb-muted">
+                Condition *
+              </p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {conditionOptions.map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => {
+                      setCondition(opt);
+                      clearField("condition");
+                    }}
+                    className={[
+                      "rounded-2xl border px-4 py-4 text-left transition",
+                      condition === opt
+                        ? "border-rb-green bg-rb-green-soft"
+                        : "border-rb-border hover:border-rb-green/40",
+                    ].join(" ")}
+                  >
+                    <p className="font-semibold text-rb-ink">{opt}</p>
+                  </button>
+                ))}
               </div>
+              {fieldErrors.condition ? (
+                <p className="mt-2 text-xs font-medium text-red-600" role="alert">
+                  {fieldErrors.condition}
+                </p>
+              ) : null}
+            </div>
+
+            <Input
+              label="Price (USD) *"
+              inputMode="decimal"
+              value={formatPriceInput(price)}
+              onChange={(e) => {
+                setPrice(sanitizePriceInput(e.target.value));
+                clearField("price");
+              }}
+              error={fieldErrors.price}
+              required
+            />
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-[0.08em] text-rb-muted">
+                Product description *
+              </label>
               <textarea
                 value={description}
                 onChange={(e) => {
@@ -472,7 +739,6 @@ export default function PostItemForm() {
                 rows={5}
                 required
                 minLength={10}
-                aria-invalid={fieldErrors.description ? "true" : undefined}
                 className={[
                   "rounded-xl border bg-rb-surface px-4 py-3 text-sm outline-none focus:bg-white focus:ring-2",
                   fieldErrors.description
@@ -499,187 +765,21 @@ export default function PostItemForm() {
                 ))}
               </div>
             </div>
-            <div className="rounded-xl bg-rb-surface p-4">
-              <div className="flex gap-3">
-                <Icon name="shield" className="size-5 shrink-0 text-rb-green" />
-                <div>
-                  <p className="font-semibold text-rb-ink">Transparency rules</p>
-                  <p className="mt-1 text-sm text-rb-muted">
-                    Be honest about both pros and cons so buyers can trust the community.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
-        {step === 1 && (
-          <div className="space-y-5">
-            <div>
-              <h2 className="text-2xl font-bold text-rb-green">Item condition</h2>
-              <p className="mt-2 text-sm text-rb-muted">
-                Choose the grade that best matches your item.
-              </p>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {conditionOptions.map((opt) => (
-                <button
-                  key={opt}
-                  type="button"
-                  onClick={() => {
-                    setCondition(opt);
-                    clearField("condition");
-                  }}
-                  className={[
-                    "rounded-2xl border px-4 py-5 text-left transition",
-                    condition === opt
-                      ? "border-rb-green bg-rb-green-soft"
-                      : fieldErrors.condition
-                        ? "border-red-300 hover:border-red-400"
-                        : "border-rb-border hover:border-rb-green/40",
-                  ].join(" ")}
-                >
-                  <p className="font-semibold text-rb-ink">{opt}</p>
-                </button>
-              ))}
-            </div>
-            {fieldErrors.condition ? (
-              <p className="text-xs font-medium text-red-600" role="alert">
-                {fieldErrors.condition}
-              </p>
-            ) : null}
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="space-y-4">
-            <div>
-              <h2 className="text-2xl font-bold text-rb-green">Product images</h2>
-              <p className="mt-2 text-sm text-rb-muted">
-                Upload at least 1 clear photo (up to {PHOTO_SLOTS}).
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {photos.map((photo, index) => (
-                <div key={index} className="relative">
-                  <input
-                    ref={(el) => {
-                      fileInputRefs.current[index] = el;
-                    }}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp,image/gif"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      if (file.size > 5 * 1024 * 1024) {
-                        setFieldErrors({
-                          photos:
-                            "Each image must be under 5MB (JPEG, PNG, WebP, or GIF).",
-                        });
-                        e.target.value = "";
-                        return;
-                      }
-                      setFormError("");
-                      setPhotoAt(index, file);
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRefs.current[index]?.click()}
-                    className="relative flex aspect-square w-full flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed border-rb-border bg-rb-surface text-rb-muted hover:border-rb-green"
-                  >
-                    {photo ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={photo.previewUrl}
-                        alt={`Photo ${index + 1}`}
-                        className="absolute inset-0 size-full object-cover"
-                      />
-                    ) : (
-                      <>
-                        <Icon name="plus" className="mb-1 size-5" />
-                        <span className="text-xs">Photo {index + 1}</span>
-                      </>
-                    )}
-                  </button>
-                  {photo ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPhotoAt(index, null);
-                        if (fileInputRefs.current[index]) {
-                          fileInputRefs.current[index].value = "";
-                        }
-                      }}
-                      className="absolute right-2 top-2 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white"
-                    >
-                      Remove
-                    </button>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-            {fieldErrors.photos ? (
-              <p className="text-xs font-medium text-red-600" role="alert">
-                {fieldErrors.photos}
-              </p>
-            ) : null}
+            <Checkbox
+              checked={acceptsOffers}
+              onChange={(e) => setAcceptsOffers(e.target.checked)}
+              label="Accept offers from buyers"
+            />
           </div>
         )}
 
         {step === 3 && (
-          <div className="space-y-5">
-            <div>
-              <h2 className="text-2xl font-bold text-rb-green">Selling price</h2>
-              <p className="mt-2 text-sm text-rb-muted">
-                Set a fair price for your item.
-              </p>
-            </div>
-            <Input
-              label="Price (USD) *"
-              type="text"
-              inputMode="decimal"
-              placeholder="e.g. 25,99 or 1.000.000"
-              value={formatPriceInput(price)}
-              onChange={(e) => {
-                setPrice(sanitizePriceInput(e.target.value));
-                clearField("price");
-              }}
-              onKeyDown={(e) => {
-                if (e.key.length === 1 && /[a-zA-Z]/.test(e.key)) {
-                  e.preventDefault();
-                }
-              }}
-              error={fieldErrors.price}
-              required
-              maxLength={18}
-              autoComplete="off"
-            />
-            <p className="text-xs text-rb-muted">
-              Numbers only, max 11 digits. Thousands use “.” (1.234.567). Use “,”
-              for cents (25,99).
-            </p>
-            <Checkbox
-              id="acceptsOffers"
-              checked={acceptsOffers}
-              onChange={(e) => setAcceptsOffers(e.target.checked)}
-              label="Allow buyers to make offers (−5% / −10% / −15%)"
-            />
-            <p className="text-xs text-rb-muted">
-              If enabled, buyers can send fixed discount offers after your listing
-              is approved.
-            </p>
-          </div>
-        )}
-
-        {step === 4 && (
-          <div className="space-y-5">
+          <div className="space-y-4">
             <div>
               <h2 className="text-2xl font-bold text-rb-green">Pickup address</h2>
               <p className="mt-2 text-sm text-rb-muted">
-                Keep the item at home. After a sale, a courier picks it up here
-                and delivers door-to-door to the buyer.
+                Couriers collect from this address after a sale.
               </p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -687,16 +787,11 @@ export default function PostItemForm() {
                 label="Full name"
                 value={pickupAddress.fullName}
                 onChange={(e) => updatePickupField("fullName", e.target.value)}
-                error={fieldErrors.fullName}
-                maxLength={120}
               />
               <Input
                 label="Phone"
                 value={pickupAddress.phone}
                 onChange={(e) => updatePickupField("phone", e.target.value)}
-                inputMode="numeric"
-                maxLength={10}
-                placeholder="10 digits"
                 error={fieldErrors.phone}
               />
               <Input
@@ -705,20 +800,17 @@ export default function PostItemForm() {
                 onChange={(e) => updatePickupField("line1", e.target.value)}
                 error={fieldErrors.line1}
                 required
-                containerClassName="sm:col-span-2"
+                className="sm:col-span-2"
               />
               <Input
                 label="Address line 2"
                 value={pickupAddress.line2}
                 onChange={(e) => updatePickupField("line2", e.target.value)}
-                error={fieldErrors.line2}
-                containerClassName="sm:col-span-2"
               />
               <Input
                 label="District"
                 value={pickupAddress.district}
                 onChange={(e) => updatePickupField("district", e.target.value)}
-                error={fieldErrors.district}
               />
               <Input
                 label="City *"
@@ -727,91 +819,69 @@ export default function PostItemForm() {
                 error={fieldErrors.city}
                 required
               />
-              <div className="flex flex-col gap-1.5 sm:col-span-2">
-                <label className="text-[11px] font-bold uppercase tracking-[0.08em] text-rb-muted">
-                  Note for courier
-                </label>
-                <textarea
-                  value={pickupAddress.note}
-                  onChange={(e) => updatePickupField("note", e.target.value)}
-                  rows={2}
-                  maxLength={500}
-                  className="rounded-xl border border-rb-border bg-rb-surface px-4 py-3 text-sm outline-none focus:border-rb-green focus:bg-white focus:ring-2 focus:ring-rb-green/15"
-                  placeholder="Gate code, preferred pickup window..."
-                />
-              </div>
+              <Input
+                label="Note for courier"
+                value={pickupAddress.note}
+                onChange={(e) => updatePickupField("note", e.target.value)}
+                className="sm:col-span-2"
+              />
             </div>
-            <Alert variant="note">
-              Your item stays with you until a courier arrives for pickup.
-            </Alert>
           </div>
         )}
 
-        {step === 5 && (
-          <div className="space-y-3 rounded-2xl bg-rb-surface p-5 text-sm">
-            <h2 className="mb-4 text-xl font-bold text-rb-green">Confirm listing</h2>
+        {step === 4 && (
+          <div className="space-y-3 text-sm text-rb-ink">
+            <h2 className="text-2xl font-bold text-rb-green">Confirmation</h2>
             <p>
               <strong>Title:</strong> {title || "—"}
             </p>
             <p>
-              <strong>Brand:</strong> {brand || "—"}
+              <strong>Brand / category:</strong> {brand || "—"} /{" "}
+              {selectedCategory?.name || "—"}
             </p>
             <p>
-              <strong>Category:</strong> {selectedCategory?.name || "—"}
+              <strong>Condition:</strong> {condition}
             </p>
-            {categorySchema?.fields.map((field) => {
-              const raw = attributeValues[field.key];
-              if (raw === "" || raw == null) return null;
-              return (
-                <p key={field.key}>
-                  <strong>{field.label}:</strong>{" "}
-                  {formatAttributeValue(field, raw)}
-                </p>
-              );
-            })}
             <p>
               <strong>Price:</strong>{" "}
-              {price ? formatMoney(price) : "—"}
+              {price ? formatMoney(Number(price)) : "—"}
             </p>
-            <p>
-              <strong>Accept offers:</strong>{" "}
-              {acceptsOffers ? "Yes (−5% / −10% / −15%)" : "No"}
-            </p>
-            <p>
-              <strong>Condition:</strong> {condition || "—"}
-            </p>
-            <div>
-              <p className="mb-2">
-                <strong>Photos:</strong> {selectedPhotos.length} selected
-              </p>
-              {selectedPhotos.length > 0 ? (
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {selectedPhotos.map((photo, index) => (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      key={photo.previewUrl}
-                      src={photo.previewUrl}
-                      alt={`Product photo ${index + 1}`}
-                      className="aspect-square w-full rounded-xl border border-rb-border object-cover"
-                    />
-                  ))}
-                </div>
-              ) : (
-                <p className="text-rb-muted">No photos selected.</p>
-              )}
+            {categorySchema ? (
+              <ul className="list-inside list-disc text-rb-muted">
+                {categorySchema.fields.map((field) => (
+                  <li key={field.key}>
+                    {field.label}:{" "}
+                    {formatAttributeValue(field, attributeValues[field.key]) || "—"}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            <div className="flex flex-wrap gap-2">
+              {(uploadedUrls.length
+                ? uploadedUrls
+                : selectedPhotos.map((p) => p.previewUrl)
+              ).map((url) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={url}
+                  src={url}
+                  alt=""
+                  className="size-16 rounded-lg object-cover"
+                />
+              ))}
             </div>
             <p>
-              <strong>Pickup address:</strong>{" "}
-              {formatPickupSummary(pickupAddress) || "—"}
+              <strong>Pickup:</strong> {formatPickupSummary(pickupAddress) || "—"}
             </p>
-            {pickupAddress.note ? (
-              <p>
-                <strong>Courier note:</strong> {pickupAddress.note}
-              </p>
-            ) : null}
-            <p className="pt-2 text-rb-muted">
+            <p className="text-rb-muted">
               <strong>Description:</strong> {description || "—"}
             </p>
+            {aiRisk ? (
+              <p className="text-rb-muted">
+                AI pre-check risk: {aiRisk}
+                {aiFlags.length ? ` (${aiFlags.join(", ")})` : ""}
+              </p>
+            ) : null}
           </div>
         )}
 
@@ -825,6 +895,7 @@ export default function PostItemForm() {
           <Button
             variant="secondary"
             href={step === 0 ? ROUTES.home : undefined}
+            disabled={analyzing || submitting}
             onClick={
               step === 0
                 ? undefined
@@ -837,9 +908,11 @@ export default function PostItemForm() {
           >
             {step === 0 ? "Cancel" : "Back"}
           </Button>
+
           {step < STEP_META.length - 1 ? (
             <Button
-              onClick={() => {
+              disabled={analyzing || metaLoading || !isAuthenticated}
+              onClick={async () => {
                 const errors = validateStep(step);
                 if (hasFieldErrors(errors)) {
                   setFieldErrors(errors);
@@ -848,32 +921,44 @@ export default function PostItemForm() {
                 }
                 setFieldErrors({});
                 setFormError("");
+
+                if (step === 0) {
+                  setStep(1);
+                  await runAiAnalysis();
+                  return;
+                }
+
                 setStep((s) => s + 1);
               }}
             >
-              Next →
+              {step === 0
+                ? analyzing
+                  ? "Analyzing…"
+                  : "Analyze with AI →"
+                : step === 1
+                  ? analyzing
+                    ? "Please wait…"
+                    : "Review details →"
+                  : "Next →"}
             </Button>
           ) : (
             <Button
-              disabled={!isAuthenticated || metaLoading || submitting}
+              disabled={!isAuthenticated || metaLoading || submitting || analyzing}
               onClick={async () => {
                 if (!token) return;
                 const allErrors = {
                   ...validateStep(0),
-                  ...validateStep(1),
                   ...validateStep(2),
                   ...validateStep(3),
-                  ...validateStep(4),
                 };
                 if (hasFieldErrors(allErrors)) {
                   setFieldErrors(allErrors);
                   setFormError(
                     "Fix the highlighted fields before submitting your listing.",
                   );
-                  const firstBadStep = [0, 1, 2, 3, 4].find((s) =>
-                    hasFieldErrors(validateStep(s)),
-                  );
-                  if (firstBadStep != null) setStep(firstBadStep);
+                  if (hasFieldErrors(validateStep(0))) setStep(0);
+                  else if (hasFieldErrors(validateStep(2))) setStep(2);
+                  else setStep(3);
                   return;
                 }
 
@@ -881,15 +966,17 @@ export default function PostItemForm() {
                   categorySlug,
                   attributeValues,
                 );
-                const attributesPayload = attrs.payload;
-
                 setSubmitting(true);
                 setFormError("");
                 try {
-                  const imageUrls = await backendUploadImages({
-                    token,
-                    files: selectedPhotos.map((p) => p.file),
-                  });
+                  let imageUrls = uploadedUrls;
+                  if (imageUrls.length === 0) {
+                    imageUrls = await backendUploadImages({
+                      token,
+                      files: selectedPhotos.map((p) => p.file),
+                    });
+                    setUploadedUrls(imageUrls);
+                  }
                   await backendCreateProduct({
                     token,
                     title,
@@ -899,8 +986,9 @@ export default function PostItemForm() {
                     condition,
                     images: imageUrls,
                     categoryId,
-                    attributes: attributesPayload,
+                    attributes: attrs.payload,
                     acceptsOffers,
+                    aiMeta,
                     pickupAddress: {
                       fullName: pickupAddress.fullName.trim(),
                       phone: pickupAddress.phone.trim(),
@@ -922,7 +1010,7 @@ export default function PostItemForm() {
                 }
               }}
             >
-              {submitting ? "Submitting..." : "Submit listing"}
+              {submitting ? "Submitting..." : "Submit for admin review"}
             </Button>
           )}
         </div>

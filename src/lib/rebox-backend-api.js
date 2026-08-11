@@ -185,6 +185,27 @@ export async function backendUploadImages({ token, files }) {
   return Array.isArray(data?.urls) ? data.urls : [];
 }
 
+export async function backendAiListingDraft({
+  token,
+  images = [],
+  categorySlug = null,
+}) {
+  const body = { images };
+  if (categorySlug) body.categorySlug = categorySlug;
+
+  const data = await backendFetchJson("/api/ai/listing-draft", {
+    method: "POST",
+    token,
+    body,
+  });
+
+  return {
+    draft: data?.draft || null,
+    aiMeta: data?.aiMeta || null,
+    message: data?.message || "",
+  };
+}
+
 export async function backendCreateProduct({
   token,
   title,
@@ -197,6 +218,7 @@ export async function backendCreateProduct({
   attributes = {},
   pickupAddress = null,
   acceptsOffers = true,
+  aiMeta = null,
 }) {
   const body = {
     title,
@@ -210,6 +232,7 @@ export async function backendCreateProduct({
     acceptsOffers,
   };
   if (pickupAddress) body.pickupAddress = pickupAddress;
+  if (aiMeta) body.aiMeta = aiMeta;
 
   const data = await backendFetchJson("/api/products", {
     method: "POST",
