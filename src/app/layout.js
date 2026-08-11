@@ -10,6 +10,13 @@ export const metadata = {
   },
   description:
     "Escrow-protected C2C marketplace with ReBox Station shipping.",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: [{ url: "/icon-192.png", sizes: "192x192", type: "image/png" }],
+  },
 };
 
 export default function RootLayout({ children }) {
