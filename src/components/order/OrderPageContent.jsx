@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import Icon from "@/components/ui/Icon";
+import AddressFields, { EMPTY_ADDRESS } from "@/components/ui/AddressFields";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { LOGIN_REASONS } from "@/lib/auth";
@@ -17,17 +18,8 @@ import {
   backendFetchOfferById,
   backendStartOrderPayment,
 } from "@/lib/rebox-backend-api";
-import { normalizePhone, validateAddress } from "@/lib/validation";
-
-const emptyAddress = {
-  fullName: "",
-  phone: "",
-  line1: "",
-  line2: "",
-  city: "",
-  district: "",
-  note: "",
-};
+import { validateAddress } from "@/lib/validation";
+import { useFieldErrors } from "@/hooks/useFieldErrors";
 
 export default function OrderPageContent() {
   const router = useRouter();
@@ -49,9 +41,9 @@ export default function OrderPageContent() {
 
   const [note, setNote] = useState("");
   const [selectedIds, setSelectedIds] = useState([]);
-  const [delivery, setDelivery] = useState(emptyAddress);
+  const [delivery, setDelivery] = useState(EMPTY_ADDRESS);
   const [submitting, setSubmitting] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState({});
+  const { fieldErrors, setFieldErrors, clearField } = useFieldErrors();
   const [error, setError] = useState("");
   const [acceptedOffer, setAcceptedOffer] = useState(null);
   const [offerLoading, setOfferLoading] = useState(Boolean(offerId));
@@ -174,19 +166,6 @@ export default function OrderPageContent() {
         ? current.filter((item) => item !== id)
         : [...current, id],
     );
-  }
-
-  function updateDeliveryField(field, value) {
-    setDelivery((current) => ({
-      ...current,
-      [field]: field === "phone" ? normalizePhone(value) : value,
-    }));
-    setFieldErrors((prev) => {
-      if (!prev[field]) return prev;
-      const next = { ...prev };
-      delete next[field];
-      return next;
-    });
   }
 
   async function placeOrder() {
@@ -442,55 +421,22 @@ export default function OrderPageContent() {
 
             <section className="rounded-2xl border border-rb-border bg-white p-5">
               <h2 className="font-semibold text-rb-ink">Delivery address</h2>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {[
-                  ["fullName", "Full name"],
-                  ["phone", "Phone (10 digits)"],
-                  ["line1", "Address line"],
-                  ["line2", "Address line 2"],
-                  ["district", "District"],
-                  ["city", "City"],
-                ].map(([field, label]) => (
-                  <label key={field} className="flex flex-col gap-1 text-sm">
-                    <span className="text-[11px] font-bold uppercase tracking-wide text-rb-muted">
-                      {label}
-                    </span>
-                    <input
-                      value={delivery[field]}
-                      onChange={(e) =>
-                        updateDeliveryField(field, e.target.value)
-                      }
-                      inputMode={field === "phone" ? "numeric" : undefined}
-                      maxLength={field === "phone" ? 10 : undefined}
-                      required={["fullName", "phone", "line1", "city"].includes(
-                        field,
-                      )}
-                      aria-invalid={fieldErrors[field] ? "true" : undefined}
-                      className={[
-                        "rounded-xl border bg-rb-surface/60 px-3 py-2 outline-none focus:bg-white",
-                        fieldErrors[field]
-                          ? "border-red-400 focus:border-red-500"
-                          : "border-rb-border focus:border-rb-green",
-                      ].join(" ")}
-                    />
-                    {fieldErrors[field] ? (
-                      <span className="text-xs font-medium text-red-600" role="alert">
-                        {fieldErrors[field]}
-                      </span>
-                    ) : null}
-                  </label>
-                ))}
-                <label className="flex flex-col gap-1 text-sm sm:col-span-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wide text-rb-muted">
-                    Delivery note
-                  </span>
-                  <input
-                    value={delivery.note}
-                    onChange={(e) => updateDeliveryField("note", e.target.value)}
-                    className="rounded-xl border border-rb-border bg-rb-surface/60 px-3 py-2 outline-none focus:border-rb-green focus:bg-white"
-                  />
-                </label>
-              </div>
+              <AddressFields
+                className="mt-4"
+                idPrefix="delivery"
+                value={delivery}
+                onChange={(next) => {
+                  setDelivery((prev) => {
+                    for (const key of Object.keys(next)) {
+                      if (next[key] !== prev[key]) clearField(key);
+                    }
+                    return next;
+                  });
+                }}
+                fieldErrors={fieldErrors}
+                requiredKeys={["fullName", "phone", "line1", "city"]}
+                noteLabel="Delivery note"
+              />
             </section>
           </div>
 

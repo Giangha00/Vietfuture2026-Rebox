@@ -8,6 +8,8 @@ import Select from "@/components/ui/Select";
 import Icon from "@/components/ui/Icon";
 import Checkbox from "@/components/ui/Checkbox";
 import Stepper from "@/components/ui/Stepper";
+import ImageDropzone from "@/components/ui/ImageDropzone";
+import AddressFields, { EMPTY_ADDRESS } from "@/components/ui/AddressFields";
 import Logo from "@/components/layout/Logo";
 import {
   formatMoney,
@@ -31,16 +33,14 @@ import {
 } from "@/lib/rebox-backend-api";
 import {
   hasFieldErrors,
-  normalizePhone,
   validateAddress,
   validateRequiredText,
   validateSelect,
 } from "@/lib/validation";
-import {
-  MAX_IMAGE_LABEL,
-  imageFilesFromList,
-  validateImageFile,
-} from "@/lib/image-upload";
+import { MAX_IMAGE_LABEL } from "@/lib/image-upload";
+import { FILTER_CONDITIONS } from "@/lib/product-filters";
+import { formatAddress } from "@/lib/order-status";
+import { useFieldErrors } from "@/hooks/useFieldErrors";
 
 const STEP_META = [
   { id: 1, label: "Photos" },
@@ -52,29 +52,6 @@ const STEP_META = [
 const PHOTO_SLOTS = 4;
 const SUGGESTIONS = ["Full accessories", "Under warranty", "Original owner"];
 
-const emptyPickupAddress = {
-  fullName: "",
-  phone: "",
-  line1: "",
-  line2: "",
-  city: "",
-  district: "",
-  note: "",
-};
-
-function formatPickupSummary(address) {
-  if (!address) return "";
-  const parts = [
-    address.fullName,
-    address.phone,
-    address.line1,
-    address.line2,
-    address.district,
-    address.city,
-  ].filter(Boolean);
-  return parts.join(", ");
-}
-
 export default function PostItemForm() {
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
@@ -84,8 +61,13 @@ export default function PostItemForm() {
   const [metaLoading, setMetaLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState({});
-  const [formError, setFormError] = useState("");
+  const {
+    fieldErrors,
+    setFieldErrors,
+    formError,
+    setFormError,
+    clearField,
+  } = useFieldErrors();
 
   const [title, setTitle] = useState("");
   const [brand, setBrand] = useState("");
@@ -100,10 +82,8 @@ export default function PostItemForm() {
   const [aiMeta, setAiMeta] = useState(null);
   const [aiFlags, setAiFlags] = useState([]);
   const [aiRisk, setAiRisk] = useState("");
-  const [pickupAddress, setPickupAddress] = useState(emptyPickupAddress);
-  const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [pickupAddress, setPickupAddress] = useState(EMPTY_ADDRESS);
 
-  const fileInputRefs = useRef([]);
   const photosRef = useRef(photos);
   photosRef.current = photos;
   const skipAttrResetRef = useRef(false);
@@ -169,7 +149,7 @@ export default function PostItemForm() {
     setAttributeValues(emptyAttributesForSlug(categorySlug));
   }, [categorySlug]);
 
-  const conditionOptions = useMemo(() => ["Like New", "Good", "Fair"], []);
+  const conditionOptions = useMemo(() => FILTER_CONDITIONS, []);
   const selectedPhotos = useMemo(() => photos.filter(Boolean), [photos]);
 
   function setAttribute(key, value) {
@@ -177,72 +157,32 @@ export default function PostItemForm() {
     clearField(key);
   }
 
-  function updatePickupField(field, value) {
-    setPickupAddress((current) => ({
-      ...current,
-      [field]: field === "phone" ? normalizePhone(value) : value,
-    }));
-    clearField(field);
-  }
-
-  function clearField(name) {
-    setFieldErrors((prev) => {
-      if (!prev[name]) return prev;
-      const next = { ...prev };
-      delete next[name];
-      return next;
-    });
-  }
-
-  function setPhotoAt(index, file) {
-    if (file) {
-      const check = validateImageFile(file, { field: "Photo" });
-      if (!check.ok) {
-        setFieldErrors((prev) => ({ ...prev, photos: check.message }));
-        return;
-      }
-    }
-    setPhotos((current) => {
-      const next = [...current];
-      const previous = next[index];
-      if (previous?.previewUrl) URL.revokeObjectURL(previous.previewUrl);
-      next[index] = file
-        ? { file, previewUrl: URL.createObjectURL(file) }
-        : null;
-      return next;
-    });
-    setUploadedUrls([]);
-    setAiMeta(null);
-    clearField("photos");
-  }
-
-  function applyPhotoFiles(files, startIndex = 0) {
-    const images = imageFilesFromList(files);
-    if (images.length === 0) {
-      setFieldErrors((prev) => ({
-        ...prev,
-        photos: "Drop image files only (JPEG, PNG, WebP, or GIF).",
-      }));
+  function handleSlotChange(index, files, errorMessage = "") {
+    if (errorMessage && (!files || files.length === 0)) {
+      setFieldErrors((prev) => ({ ...prev, photos: errorMessage }));
       return;
     }
 
-    const accepted = [];
-    for (const file of images) {
-      const check = validateImageFile(file, { field: "Photo" });
-      if (!check.ok) {
-        setFieldErrors((prev) => ({ ...prev, photos: check.message }));
-        if (accepted.length === 0) return;
-        break;
-      }
-      accepted.push(file);
+    if (files === null) {
+      setPhotos((current) => {
+        const next = [...current];
+        const previous = next[index];
+        if (previous?.previewUrl) URL.revokeObjectURL(previous.previewUrl);
+        next[index] = null;
+        return next;
+      });
+      setUploadedUrls([]);
+      setAiMeta(null);
+      clearField("photos");
+      return;
     }
-    if (accepted.length === 0) return;
 
+    const accepted = Array.isArray(files) ? files : [files];
     setPhotos((current) => {
       const next = [...current];
-      let slot = Math.max(0, Math.min(startIndex, PHOTO_SLOTS - 1));
+      let slot = Math.max(0, Math.min(index, PHOTO_SLOTS - 1));
       for (const file of accepted) {
-        while (slot < PHOTO_SLOTS && next[slot] && slot !== startIndex) {
+        while (slot < PHOTO_SLOTS && next[slot] && slot !== index) {
           slot += 1;
         }
         if (slot >= PHOTO_SLOTS) break;
@@ -255,26 +195,11 @@ export default function PostItemForm() {
     });
     setUploadedUrls([]);
     setAiMeta(null);
-    clearField("photos");
-  }
-
-  function handlePhotoDragOver(event, index) {
-    event.preventDefault();
-    event.stopPropagation();
-    if (dragOverIndex !== index) setDragOverIndex(index);
-  }
-
-  function handlePhotoDragLeave(event, index) {
-    event.preventDefault();
-    event.stopPropagation();
-    if (dragOverIndex === index) setDragOverIndex(null);
-  }
-
-  function handlePhotoDrop(event, index) {
-    event.preventDefault();
-    event.stopPropagation();
-    setDragOverIndex(null);
-    applyPhotoFiles(event.dataTransfer?.files, index);
+    if (errorMessage) {
+      setFieldErrors((prev) => ({ ...prev, photos: errorMessage }));
+    } else {
+      clearField("photos");
+    }
   }
 
   function appendSuggestion(text) {
@@ -455,73 +380,13 @@ export default function PostItemForm() {
                 listing details — you can edit everything on the next steps.
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {photos.map((photo, index) => (
-                <div
-                  key={index}
-                  className="relative"
-                  onDragOver={(e) => handlePhotoDragOver(e, index)}
-                  onDragLeave={(e) => handlePhotoDragLeave(e, index)}
-                  onDrop={(e) => handlePhotoDrop(e, index)}
-                >
-                  <input
-                    ref={(el) => {
-                      fileInputRefs.current[index] = el;
-                    }}
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) setPhotoAt(index, file);
-                      e.target.value = "";
-                    }}
-                  />
-                  {photo ? (
-                    <div
-                      className={[
-                        "relative aspect-square overflow-hidden rounded-2xl border border-rb-border",
-                        dragOverIndex === index ? "ring-2 ring-rb-green" : "",
-                      ].join(" ")}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={photo.previewUrl}
-                        alt={`Product ${index + 1}`}
-                        className="size-full object-cover"
-                      />
-                      <button
-                        type="button"
-                        className="absolute right-2 top-2 rounded-full bg-white/90 px-2 py-1 text-xs font-semibold text-rb-ink"
-                        onClick={() => setPhotoAt(index, null)}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => fileInputRefs.current[index]?.click()}
-                      className={[
-                        "flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed bg-rb-surface text-sm hover:border-rb-green hover:text-rb-green",
-                        dragOverIndex === index
-                          ? "border-rb-green text-rb-green ring-2 ring-rb-green/30"
-                          : "border-rb-border text-rb-muted",
-                      ].join(" ")}
-                    >
-                      <Icon name="camera" className="size-6" />
-                      {dragOverIndex === index ? "Drop photo" : "Add photo"}
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-            {fieldErrors.photos ? (
-              <p className="text-xs font-medium text-red-600" role="alert">
-                {fieldErrors.photos}
-              </p>
-            ) : null}
+            <ImageDropzone
+              mode="slots"
+              slots={photos}
+              onSlotChange={handleSlotChange}
+              capture="environment"
+              error={fieldErrors.photos}
+            />
           </div>
         )}
 
@@ -782,50 +647,21 @@ export default function PostItemForm() {
                 Couriers collect from this address after a sale.
               </p>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Input
-                label="Full name"
-                value={pickupAddress.fullName}
-                onChange={(e) => updatePickupField("fullName", e.target.value)}
-              />
-              <Input
-                label="Phone"
-                value={pickupAddress.phone}
-                onChange={(e) => updatePickupField("phone", e.target.value)}
-                error={fieldErrors.phone}
-              />
-              <Input
-                label="Address line *"
-                value={pickupAddress.line1}
-                onChange={(e) => updatePickupField("line1", e.target.value)}
-                error={fieldErrors.line1}
-                required
-                className="sm:col-span-2"
-              />
-              <Input
-                label="Address line 2"
-                value={pickupAddress.line2}
-                onChange={(e) => updatePickupField("line2", e.target.value)}
-              />
-              <Input
-                label="District"
-                value={pickupAddress.district}
-                onChange={(e) => updatePickupField("district", e.target.value)}
-              />
-              <Input
-                label="City *"
-                value={pickupAddress.city}
-                onChange={(e) => updatePickupField("city", e.target.value)}
-                error={fieldErrors.city}
-                required
-              />
-              <Input
-                label="Note for courier"
-                value={pickupAddress.note}
-                onChange={(e) => updatePickupField("note", e.target.value)}
-                className="sm:col-span-2"
-              />
-            </div>
+            <AddressFields
+              idPrefix="pickup"
+              value={pickupAddress}
+              onChange={(next) => {
+                setPickupAddress((prev) => {
+                  for (const key of Object.keys(next)) {
+                    if (next[key] !== prev[key]) clearField(key);
+                  }
+                  return next;
+                });
+              }}
+              fieldErrors={fieldErrors}
+              requiredKeys={["line1", "city"]}
+              noteLabel="Note for courier"
+            />
           </div>
         )}
 
@@ -871,7 +707,7 @@ export default function PostItemForm() {
               ))}
             </div>
             <p>
-              <strong>Pickup:</strong> {formatPickupSummary(pickupAddress) || "—"}
+              <strong>Pickup:</strong> {formatAddress(pickupAddress) || "—"}
             </p>
             <p className="text-rb-muted">
               <strong>Description:</strong> {description || "—"}

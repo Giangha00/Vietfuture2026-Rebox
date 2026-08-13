@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
-import Icon from "@/components/ui/Icon";
+import ImageDropzone from "@/components/ui/ImageDropzone";
 import { useAuth } from "@/context/AuthContext";
 import { backendUploadImages } from "@/lib/rebox-backend-api";
 import { ROUTES } from "@/lib/routes";
@@ -16,15 +16,10 @@ import {
   validateFullName,
   validatePhone,
 } from "@/lib/validation";
-import {
-  MAX_IMAGE_LABEL,
-  imageFilesFromList,
-  validateImageFile,
-} from "@/lib/image-upload";
+import { useFieldErrors } from "@/hooks/useFieldErrors";
 
 export default function EditProfileModal({ open, onClose }) {
   const { user, token, updateProfile, redirectToVerifyEmail } = useAuth();
-  const fileInputRef = useRef(null);
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -33,10 +28,14 @@ export default function EditProfileModal({ open, onClose }) {
   const [avatarUrl, setAvatarUrl] = useState("");
   const [avatarPreview, setAvatarPreview] = useState("");
   const [avatarFile, setAvatarFile] = useState(null);
-  const [fieldErrors, setFieldErrors] = useState({});
-  const [formError, setFormError] = useState("");
+  const {
+    fieldErrors,
+    setFieldErrors,
+    formError,
+    setFormError,
+    clearField,
+  } = useFieldErrors();
   const [submitting, setSubmitting] = useState(false);
-  const [avatarDragOver, setAvatarDragOver] = useState(false);
 
   useEffect(() => {
     if (!open || !user) return;
@@ -50,25 +49,15 @@ export default function EditProfileModal({ open, onClose }) {
     setAvatarFile(null);
     setFieldErrors({});
     setFormError("");
-    setAvatarDragOver(false);
-  }, [open, user]);
+  }, [open, setFieldErrors, setFormError, user]);
 
-  function clearField(name) {
-    setFieldErrors((prev) => {
-      if (!prev[name]) return prev;
-      const next = { ...prev };
-      delete next[name];
-      return next;
-    });
-  }
-
-  function applyAvatarFile(file) {
-    if (!file) return;
-    const check = validateImageFile(file, { field: "Avatar image" });
-    if (!check.ok) {
+  function handleAvatarChange(file, errorMessage = "") {
+    if (errorMessage || !file) {
       setFieldErrors((prev) => ({
         ...prev,
-        avatar: `${check.message} Use JPEG, PNG, WebP, or GIF.`,
+        avatar:
+          errorMessage ||
+          "Drop an image file only (JPEG, PNG, WebP, or GIF).",
       }));
       return;
     }
@@ -150,77 +139,14 @@ export default function EditProfileModal({ open, onClose }) {
           }
         }}
       >
-        <div
-          className={[
-            "flex items-center gap-4 rounded-2xl border border-dashed p-3 transition-colors",
-            avatarDragOver
-              ? "border-rb-green bg-rb-green/5"
-              : "border-transparent",
-          ].join(" ")}
-          onDragOver={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setAvatarDragOver(true);
-          }}
-          onDragLeave={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setAvatarDragOver(false);
-          }}
-          onDrop={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setAvatarDragOver(false);
-            const [file] = imageFilesFromList(e.dataTransfer?.files);
-            if (!file) {
-              setFieldErrors((prev) => ({
-                ...prev,
-                avatar: "Drop an image file only (JPEG, PNG, WebP, or GIF).",
-              }));
-              return;
-            }
-            applyAvatarFile(file);
-          }}
-        >
-          <div className="relative size-20 overflow-hidden rounded-full border border-rb-border bg-rb-surface">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={avatarPreview || avatarUrl || "/default-avatar.svg"}
-              alt={fullName || "Avatar"}
-              className="size-full object-cover"
-            />
-          </div>
-          <div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) applyAvatarFile(file);
-                e.target.value = "";
-              }}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Icon name="camera" className="size-4" />
-              {avatarDragOver ? "Drop photo" : "Change photo"}
-            </Button>
-            <p className="mt-1.5 text-xs text-rb-muted">
-              Click or drag and drop · max {MAX_IMAGE_LABEL}
-            </p>
-            {fieldErrors.avatar ? (
-              <p className="mt-2 text-xs font-medium text-red-600" role="alert">
-                {fieldErrors.avatar}
-              </p>
-            ) : null}
-          </div>
-        </div>
+        <ImageDropzone
+          mode="single"
+          previewUrl={avatarPreview || avatarUrl || "/default-avatar.svg"}
+          onFileChange={handleAvatarChange}
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          emptyLabel="Change photo"
+          error={fieldErrors.avatar}
+        />
 
         <Input
           label="Full Name"
