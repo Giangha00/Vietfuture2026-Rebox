@@ -19,8 +19,11 @@ import { ROUTES } from "@/lib/routes";
 import { useAuth } from "@/context/AuthContext";
 import {
   emptyAttributesForSlug,
+  fieldAllowsOther,
   formatAttributeValue,
   getCategorySchema,
+  selectControlValue,
+  selectCustomValue,
   validateAttributeFields,
 } from "@/lib/category-schemas";
 import {
@@ -662,6 +665,83 @@ export default function PostItemForm() {
                           min={field.min}
                           max={field.max}
                         />
+                      );
+                    }
+                    if (field.type === "text") {
+                      return (
+                        <Input
+                          key={field.key}
+                          label={`${field.label}${field.required ? " *" : ""}`}
+                          type="text"
+                          value={attributeValues[field.key] ?? ""}
+                          onChange={(e) => setAttribute(field.key, e.target.value)}
+                          error={fieldErrors[field.key]}
+                          required={field.required}
+                          maxLength={field.max ?? 80}
+                          placeholder={field.placeholder || ""}
+                        />
+                      );
+                    }
+                    if (fieldAllowsOther(field)) {
+                      const selectValue = selectControlValue(
+                        field,
+                        attributeValues[field.key],
+                      );
+                      const customValue = selectCustomValue(
+                        field,
+                        attributeValues[field.key],
+                      );
+                      const isOther = selectValue === "other";
+                      return (
+                        <div key={field.key} className="space-y-1.5">
+                          {isOther ? (
+                            <>
+                              <Input
+                                label={`${field.label}${field.required ? " *" : ""}`}
+                                type="text"
+                                autoFocus
+                                value={customValue}
+                                onChange={(e) =>
+                                  setAttribute(
+                                    field.key,
+                                    e.target.value.trim() === ""
+                                      ? "other"
+                                      : e.target.value,
+                                  )
+                                }
+                                error={fieldErrors[field.key]}
+                                required={field.required}
+                                maxLength={field.max ?? 80}
+                                placeholder={`Enter ${field.label.toLowerCase()}`}
+                              />
+                              <button
+                                type="button"
+                                className="self-start text-xs font-semibold text-rb-green hover:underline"
+                                onClick={() => setAttribute(field.key, "")}
+                              >
+                                Back to list
+                              </button>
+                            </>
+                          ) : (
+                            <Select
+                              label={`${field.label}${field.required ? " *" : ""}`}
+                              value={selectValue}
+                              onChange={(e) => {
+                                const next = e.target.value;
+                                setAttribute(
+                                  field.key,
+                                  next === "other" ? "other" : next,
+                                );
+                              }}
+                              options={[
+                                { value: "", label: "Select…" },
+                                ...(field.options || []),
+                              ]}
+                              error={fieldErrors[field.key]}
+                              required={field.required}
+                            />
+                          )}
+                        </div>
                       );
                     }
                     return (
