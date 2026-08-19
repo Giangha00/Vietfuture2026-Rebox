@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>P11 · Lộ trình sản phẩm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/tokens.css">
+<style>
+  body { padding: 56px 64px; }
+  .tl { position: relative; z-index: 1; margin-top: 80px; height: 720px; }
+  .spine {
+    position: absolute; left: 64px; right: 64px; top: 50%;
+    height: 3px; background: var(--brand-primary); transform: translateY(-50%);
+  }
+  .node {
+    position: absolute; top: 50%; width: 18px; height: 18px;
+    border: 3px solid var(--brand-primary); background: #fff; border-radius: 999px;
+    transform: translate(-50%, -50%);
+  }
+  .n1 { left: 12%; } .n2 { left: 37%; } .n3 { left: 63%; } .n4 { left: 88%; }
+  .box {
+    position: absolute; width: 340px;
+    padding: 22px 22px 20px;
+    text-align: center;
+  }
+  .b1 { left: calc(12% - 170px); top: 52%; margin-top: 36px; }
+  .b2 { left: calc(37% - 170px); bottom: 52%; margin-bottom: 36px; }
+  .b3 { left: calc(63% - 170px); top: 52%; margin-top: 36px; }
+  .b4 { left: calc(88% - 170px); bottom: 52%; margin-bottom: 36px; }
+  .box h3 { font-size: 20px; font-weight: 800; color: var(--brand-primary); margin-bottom: 8px; }
+  .box p { font-size: 15px; line-height: 1.55; color: var(--body); }
+</style>
+</head>
+<body>
+  <div class="slide-glow"></div>
+  <header class="slide-header">
+    <h1 class="slide-title">Lộ Trình Phát Triển Sản Phẩm (T1 – T12)</h1>
+  </header>
+  <div class="tl">
+    <div class="spine"></div>
+    <span class="node n1"></span><span class="node n2"></span><span class="node n3"></span><span class="node n4"></span>
+    <article class="card box b1">
+      <h3>Quý 1: Launch Beta</h3>
+      <p>Escrow + listing schema 3 category. eKYC rút tiền. Seed 100 listing tech tại HCM / Hà Nội.</p>
+    </article>
+    <article class="card box b2">
+      <h3>Quý 2: 3PL &amp; Link</h3>
+      <p>Courier pickup. ReBox Payment Link cho hội nhóm FB. AI Vision gắn tag keyboard / mouse / monitor.</p>
+    </article>
+    <article class="card box b3">
+      <h3>Quý 3: Trọng tài</h3>
+      <p>Luồng khiếu nại + ảnh 6 mặt. Kiểm định trả phí. Mở Smart Offer theo tình trạng.</p>
+    </article>
+    <article class="card box b4">
+      <h3>Quý 4: Monetize</h3>
+      <p>Thử take-rate trên boosted listing. Chuẩn bị phone/laptop khi thanh khoản ngách đã khóa.</p>
+    </article>
+  </div>
+</body>
+</html>

@@ -1,0 +1,153 @@
+/* ReBox pitch tokens — brand-spec.md */
+:root {
+  --brand-primary: #004d40;
+  --brand-primary-dark: #003830;
+  --brand-soft: #e6f2ed;
+  --brand-mint: #c6ead3;
+  --ink: #111827;
+  --body: #4b5568;
+  --muted: #666666;
+  --bg: #ffffff;
+  --card: #ffffff;
+  --border: #e5e7eb;
+  --surface: #f8f9fa;
+  --hero-bg: #f5f3ee;
+  --shadow: 0 10px 32px rgba(17, 24, 39, 0.06);
+  --radius-card: 20px;
+  --radius-icon: 12px;
+  --page-pad: 64px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { background: #0f1412; }
+
+body {
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  font-family: "DM Sans", "Be Vietnam Pro", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  position: relative;
+}
+
+.slide-glow {
+  position: absolute;
+  top: -140px;
+  right: -100px;
+  width: 780px;
+  height: 560px;
+  background: radial-gradient(circle at 72% 28%, rgba(0, 77, 64, 0.16), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.slide-header {
+  position: relative;
+  z-index: 1;
+}
+
+.slide-title {
+  font-size: 44px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.slide-sub {
+  margin-top: 14px;
+  max-width: 1280px;
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--body);
+  line-height: 1.45;
+}
+
+.icon-tile {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-icon);
+  background: var(--brand-soft);
+  color: var(--brand-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-tile svg { width: 26px; height: 26px; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow);
+}
+
+em, .accent { color: var(--brand-primary); font-style: normal; font-weight: 700; }
+
+.page { padding: 64px 64px 56px; }
+
+.grid-3, .grid-2, .grid-2x2 {
+  position: relative;
+  z-index: 1;
+  margin-top: 40px;
+  display: grid;
+  gap: 22px;
+}
+.grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.grid-2 { grid-template-columns: 1fr 1fr; }
+.grid-2x2 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+
+.card-pad { padding: 28px 28px 26px; }
+
+.card h3.card-title {
+  margin-top: 18px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  color: var(--ink);
+}
+.card h3.card-title.phase { color: var(--brand-primary); margin-top: 14px; }
+
+.card-body {
+  margin-top: 12px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--body);
+}
+.card-body strong { color: var(--ink); font-weight: 700; }
+
+.divider {
+  height: 1px;
+  background: #eef2f6;
+  margin: 16px 0 18px;
+}
+
+.check {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-top: 12px;
+}
+.check:first-of-type { margin-top: 0; }
+.check-ico {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  border-radius: 999px;
+  background: var(--brand-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.check-ico svg { width: 12px; height: 12px; }
+.check p { font-size: 16px; line-height: 1.55; color: var(--body); }
+.check p strong { color: var(--ink); font-weight: 700; }
+
+.fonts-note { display: none; }

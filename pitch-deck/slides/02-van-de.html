@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>P02 · Vấn đề thị trường C2C</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/tokens.css">
+<style>
+  body { padding: 64px 64px 56px; }
+  .grid {
+    position: relative;
+    z-index: 1;
+    margin-top: 48px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 22px;
+    height: calc(1080px - 64px - 56px - 140px);
+  }
+  .card {
+    padding: 32px 28px 28px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .card h3 {
+    margin-top: 22px;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+    color: var(--ink);
+  }
+  .card p {
+    margin-top: 14px;
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--body);
+  }
+  .card p strong { color: var(--ink); font-weight: 700; }
+  .stat {
+    margin-top: auto;
+    padding-top: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--brand-primary);
+    letter-spacing: 0.01em;
+  }
+</style>
+</head>
+<body>
+  <div class="slide-glow"></div>
+  <header class="slide-header">
+    <h1 class="slide-title">Vấn Đề Thực Tế Của Thị Trường C2C</h1>
+    <p class="slide-sub">Khảo sát 10 người dùng ReBox (08/2026): kênh chính vẫn là Facebook và bạn bè — niềm tin thì không đi cùng.</p>
+  </header>
+
+  <div class="grid">
+    <article class="card">
+      <div class="icon-tile">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.4-4 8-9 8l-4 3v-3.2C4.7 18.4 3 15.4 3 12c0-4.4 4-8 9-8s9 3.6 9 8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h3>Ma sát trong thương lượng</h3>
+      <p>Người bán <strong>ngập tin nhắn ảo</strong>, người mua trả giá không hồi kết. 6/10 đang mua–bán qua Facebook hoặc hội nhóm — đúng nơi ma sát lớn nhất.</p>
+      <p class="stat">Kênh hiện tại: bạn bè 7 · Facebook 6 · Shopee 4</p>
+    </article>
+
+    <article class="card">
+      <div class="icon-tile">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+      </div>
+      <h3>Niềm tin bằng KHÔNG</h3>
+      <p><strong>6 trên 10</strong> đã nhận hàng không giống mô tả. Nỗi lo #1 khi mua online: người bán không uy tín, hàng lỗi giấu, ảnh không phải hàng thật.</p>
+      <p class="stat">Q10 — hàng ≠ thông tin: 6 Có / 4 Chưa từng</p>
+    </article>
+
+    <article class="card">
+      <div class="icon-tile">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke-linecap="round"/></svg>
+      </div>
+      <h3>Thiếu lớp bảo chứng</h3>
+      <p>Điều làm họ tin: <strong>đánh giá thật, ảnh thật, mô tả tình trạng, kiểm định, hoàn tiền</strong>. Escrow mới được 2/10 nhắc — hạ tầng tin cậy gần như chưa tồn tại.</p>
+      <p class="stat">8/10 sẵn sàng thử nền tảng kiểu ReBox</p>
+    </article>
+  </div>
+</body>
+</html>

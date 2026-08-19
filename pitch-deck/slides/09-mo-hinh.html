@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>P09 · Mô hình kinh doanh</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/tokens.css">
+<style>
+  body { padding: 64px; }
+  .grid { height: calc(1080px - 64px - 64px - 140px); }
+  .card { padding: 28px 32px; }
+  .head { display: flex; align-items: center; gap: 12px; }
+  .head h3 { margin: 0; font-size: 24px; font-weight: 700; color: var(--brand-primary); }
+</style>
+</head>
+<body>
+  <div class="slide-glow"></div>
+  <header class="slide-header">
+    <h1 class="slide-title">Mô Hình Kinh Doanh</h1>
+    <p class="slide-sub">Hai pha: chiếm thanh khoản trước, mở take-rate sau. Không thu phí khi thị trường còn đang sợ.</p>
+  </header>
+  <div class="grid-2 grid">
+    <article class="card">
+      <div class="head">
+        <div class="icon-tile"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 21c4-4 8-7.2 8-11a8 8 0 1 0-16 0c0 3.8 4 7 8 11Z"/><path d="M12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/></svg></div>
+        <h3>Pha 1 · Chiếm user (Năm 1)</h3>
+      </div>
+      <div class="divider"></div>
+      <div class="check"><span class="check-ico"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7" stroke-linecap="round"/></svg></span><p><strong>0% phí giao dịch</strong> — hạ rào cho C2C cá nhân, đối trọng Shopee phí shop.</p></div>
+      <div class="check"><span class="check-ico"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7" stroke-linecap="round"/></svg></span><p><strong>Floating cash:</strong> float escrow (tiền nằm trên ví trước khi giải ngân) tài trợ burn.</p></div>
+      <div class="check"><span class="check-ico"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7" stroke-linecap="round"/></svg></span><p><strong>Supply seeding:</strong> bàn phím / chuột / monitor — AOV đủ lớn để học vận hành escrow.</p></div>
+    </article>
+    <article class="card">
+      <div class="head">
+        <div class="icon-tile"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l3-4 3 3 5-7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h3>Pha 2 · Mở doanh thu (Năm 2+)</h3>
+      </div>
+      <div class="divider"></div>
+      <div class="check"><span class="check-ico"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7" stroke-linecap="round"/></svg></span><p><strong>Take-rate ~3%</strong> khi thanh khoản và niềm tin đã khóa user.</p></div>
+      <div class="check"><span class="check-ico"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7" stroke-linecap="round"/></svg></span><p><strong>Boosted listing</strong> + dịch vụ kiểm định trả phí (6/10 rất quan tâm kiểm định; sẵn sàng trả thêm nếu phí hợp lý).</p></div>
+      <div class="check"><span class="check-ico"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7" stroke-linecap="round"/></svg></span><p><strong>Authentication</strong> cho hàng giá trị cao (monitor / keyboard custom) trước khi giao.</p></div>
+    </article>
+  </div>
+</body>
+</html>

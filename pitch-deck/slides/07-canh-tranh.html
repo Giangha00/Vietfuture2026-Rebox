@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>P07 · Bản đồ cạnh tranh</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/tokens.css">
+<style>
+  body { padding: 56px 64px; }
+  .wrap { position: relative; z-index: 1; margin-top: 36px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  th, td {
+    text-align: left;
+    vertical-align: top;
+    padding: 22px 24px;
+    font-size: 16px;
+    line-height: 1.55;
+  }
+  th { font-size: 15px; font-weight: 800; letter-spacing: 0.02em; }
+  th.p { color: #b42318; }
+  th.s { color: var(--brand-primary); }
+  tr:nth-child(even) td { background: #f7faf9; }
+  td:first-child, th:first-child { width: 22%; background: #f3f7f6; font-weight: 700; color: var(--ink); }
+  td:nth-child(3) { background: #f3f8f6; }
+  tr:nth-child(even) td:nth-child(3) { background: #eaf4f0; }
+  .arr { color: #0f766e; font-weight: 800; margin-right: 6px; }
+  td strong { color: var(--ink); }
+</style>
+</head>
+<body>
+  <div class="slide-glow"></div>
+  <header class="slide-header">
+    <h1 class="slide-title">Bản Đồ Cạnh Tranh &amp; Định Vị</h1>
+    <p class="slide-sub">Không đánh Shopee trên B2C. Đánh đúng chỗ khảo sát đang đau: Facebook, hội nhóm, và sàn rao vặt không có trọng tài.</p>
+  </header>
+  <div class="wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Nền tảng</th>
+          <th class="p">Hạn chế hiện tại với C2C</th>
+          <th class="s">Cách ReBox giải quyết</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Facebook Groups</td>
+          <td>Lừa đảo, inbox hỗn loạn, không escrow, không kiểm định. Kênh 6/10 đang dùng.</td>
+          <td><span class="arr">→</span><strong>ReBox Link</strong> + ví escrow. Giữ traffic hội nhóm, kéo thanh toán vào hạ tầng tin cậy.</td>
+        </tr>
+        <tr>
+          <td>Sàn rao vặt (Chợ Tốt)</td>
+          <td>Gặp mặt / COD, hàng ≠ ảnh, khó tranh chấp. 6/10 từng nhận sai mô tả.</td>
+          <td><span class="arr">→</span><strong>Courier + kiểm hàng</strong> trước khi giải ngân. Schema tình trạng bắt buộc trên listing.</td>
+        </tr>
+        <tr>
+          <td>Sàn TMĐT (Shopee, TikTok)</td>
+          <td>Thiết kế B2C, phí &amp; chính sách thiên shop. C2C cá nhân không phải “gian hàng”.</td>
+          <td><span class="arr">→</span><strong>C2C-native:</strong> 0% phí năm 1, trọng tài cho cá nhân, eKYC trước khi rút tiền.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

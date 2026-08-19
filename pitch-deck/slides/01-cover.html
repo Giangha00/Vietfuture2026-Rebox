@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>P01 · ReBox Cover</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/tokens.css">
+<style>
+  body {
+    display: grid;
+    grid-template-columns: 0.92fr 1.18fr;
+    gap: 36px;
+    padding: 56px 56px 48px;
+  }
+  .left {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-right: 12px;
+  }
+  .kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--brand-primary);
+    margin-bottom: 22px;
+  }
+  .kicker img { width: 28px; height: 28px; }
+  h1 {
+    font-size: 52px;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.12;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+  h1 .brand {
+    color: var(--brand-primary);
+    position: relative;
+    display: inline-block;
+  }
+  h1 .brand:after {
+    content: "";
+    position: absolute;
+    left: 0; right: 4px; bottom: 2px;
+    height: 8px;
+    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 10' preserveAspectRatio='none'><path d='M0 6 Q 20 0 40 6 T 80 6 T 120 6' fill='none' stroke='%23004d40' stroke-width='3' stroke-linecap='round'/></svg>") no-repeat center / 100% 100%;
+    opacity: 0.55;
+  }
+  .tagline {
+    margin-top: 22px;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.35;
+  }
+  .lead {
+    margin-top: 18px;
+    font-size: 18px;
+    line-height: 1.65;
+    color: var(--body);
+    max-width: 620px;
+  }
+  .pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 28px;
+  }
+  .pill {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--brand-primary);
+    background: var(--brand-soft);
+    border-radius: 999px;
+    padding: 8px 14px;
+  }
+  .ui {
+    position: relative;
+    z-index: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .nav {
+    height: 56px;
+    background: rgba(255,255,255,0.96);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 18px;
+    flex-shrink: 0;
+  }
+  .wordmark {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--brand-primary);
+    letter-spacing: -0.03em;
+  }
+  .wordmark img { width: 26px; height: 26px; }
+  .search {
+    flex: 1;
+    height: 34px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: #9ca3af;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+  }
+  .nav-btn {
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 10px;
+    background: var(--brand-primary);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+  }
+  .hero {
+    background: var(--hero-bg);
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 18px;
+    padding: 22px 22px 18px;
+    align-items: center;
+  }
+  .hero h2 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.18;
+    color: var(--ink);
+  }
+  .hero h2 span { color: var(--brand-primary); }
+  .hero p {
+    margin-top: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--muted);
+    max-width: 340px;
+  }
+  .hero-actions { display: flex; gap: 8px; margin-top: 14px; }
+  .btn-p, .btn-s {
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+  }
+  .btn-p { background: var(--brand-primary); color: #fff; }
+  .btn-s { background: #fff; border: 1px solid var(--border); color: var(--ink); }
+  .hero-photo {
+    border-radius: 18px;
+    overflow: hidden;
+    aspect-ratio: 5/4;
+    background: #e7e5e0;
+  }
+  .hero-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 10px 22px 4px;
+  }
+  .cat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .cat-ico {
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    background: var(--brand-soft);
+    color: var(--brand-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cat-ico svg { width: 20px; height: 20px; }
+  .rail-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 8px 22px 8px;
+  }
+  .rail-head h3 { font-size: 16px; font-weight: 800; }
+  .rail-head span { font-size: 11px; font-weight: 700; color: var(--brand-primary); }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 0 18px 18px;
+  }
+  .pcard {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .pthumb {
+    position: relative;
+    aspect-ratio: 1;
+    background: #f5f5f4;
+    overflow: hidden;
+  }
+  .pthumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .badge {
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    font-size: 9px;
+    font-weight: 700;
+    background: var(--brand-soft);
+    color: var(--brand-primary);
+    border-radius: 999px;
+    padding: 3px 7px;
+  }
+  .pmeta { padding: 8px 9px 10px; }
+  .pmeta h4 {
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--ink);
+    height: 28px;
+    overflow: hidden;
+  }
+  .price { margin-top: 4px; font-size: 13px; font-weight: 800; color: var(--ink); }
+  .seller { margin-top: 4px; font-size: 10px; color: var(--muted); }
+</style>
+</head>
+<body>
+  <div class="slide-glow"></div>
+
+  <div class="left">
+    <p class="kicker"><img src="../assets/logo.svg" alt=""> Escrow protected marketplace</p>
+    <h1><span class="brand">REBOX</span>: Sàn C2C<br>Thế Hệ Mới</h1>
+    <p class="tagline">Đăng bán dễ dàng — Giao dịch an toàn tuyệt đối</p>
+    <p class="lead">Tái định nghĩa thị trường đồ cũ tại Việt Nam bằng lớp hạ tầng tín nhiệm: ví escrow, mô tả tình trạng chuẩn, và trọng tài khi có tranh chấp — cho người mua và người bán cá nhân.</p>
+    <div class="pills">
+      <span class="pill">Niche-first: Keyboards · Mice · Monitors</span>
+      <span class="pill">Ảnh listing từ catalog thật</span>
+    </div>
+  </div>
+
+  <div class="ui">
+    <div class="nav">
+      <div class="wordmark"><img src="../assets/logo.svg" alt="">ReBox</div>
+      <div class="search">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10 10 3 3" stroke-linecap="round"/></svg>
+        Search products, brands, categories...
+      </div>
+      <div class="nav-btn">+ Post Item</div>
+    </div>
+
+    <div class="hero">
+      <div>
+        <h2>Quality second-hand, fair prices, a new <span>life cycle</span>.</h2>
+        <p>A transparent marketplace for sustainable shopping — buy and sell with clarity, trust, and less waste.</p>
+        <div class="hero-actions">
+          <div class="btn-p">Shop now</div>
+          <div class="btn-s">Learn more</div>
+        </div>
+      </div>
+      <div class="hero-photo">
+        <img src="../assets/products/keyboard-rgb-rainbow.jpg" alt="Keychron listing photo">
+      </div>
+    </div>
+
+    <div class="cats">
+      <div class="cat">
+        <div class="cat-ico"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="10" rx="2"/><path d="M7 8V6h10v2M8 12h.01M12 12h.01M16 12h.01" stroke-linecap="round"/></svg></div>
+        Keyboards
+      </div>
+      <div class="cat">
+        <div class="cat-ico"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v8M9 11h6" stroke-linecap="round"/><rect x="5" y="9" width="14" height="10" rx="5"/></svg></div>
+        Mice
+      </div>
+      <div class="cat">
+        <div class="cat-ico"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4" stroke-linecap="round"/></svg></div>
+        Monitors
+      </div>
+    </div>
+
+    <div class="rail-head">
+      <h3>For you</h3>
+      <span>See all</span>
+    </div>
+    <div class="grid">
+      <article class="pcard">
+        <div class="pthumb">
+          <img src="../assets/products/keyboard-custom-65.jpg" alt="Keychron K2 V2">
+          <span class="badge">Verified</span>
+        </div>
+        <div class="pmeta">
+          <h4>Keychron K2 V2 Brown · full box 98%</h4>
+          <p class="price">$79</p>
+          <p class="seller">Minh Trần · Q.1, HCM</p>
+        </div>
+      </article>
+      <article class="pcard">
+        <div class="pthumb">
+          <img src="../assets/products/mouse-logitech-white.jpg" alt="Logitech Superlight">
+          <span class="badge">Like New</span>
+        </div>
+        <div class="pmeta">
+          <h4>Logitech G Pro X Superlight</h4>
+          <p class="price">$110</p>
+          <p class="seller">Lan Nguyễn · Q.3, HCM</p>
+        </div>
+      </article>
+      <article class="pcard">
+        <div class="pthumb">
+          <img src="../assets/products/monitor-lg.jpg" alt="LG UltraGear">
+          <span class="badge">Verified</span>
+        </div>
+        <div class="pmeta">
+          <h4>LG UltraGear 27" 165Hz IPS</h4>
+          <p class="price">$220</p>
+          <p class="seller">Khoa Vũ · Tân Bình</p>
+        </div>
+      </article>
+      <article class="pcard">
+        <div class="pthumb">
+          <img src="../assets/products/keyboard-designer.jpg" alt="Akko 3068B">
+          <span class="badge">Good</span>
+        </div>
+        <div class="pmeta">
+          <h4>Akko 3068B Plus Hot-swap</h4>
+          <p class="price">$69</p>
+          <p class="seller">Hà Lê · Cầu Giấy</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>P15 · ReBox đã sẵn sàng</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/tokens.css">
+<style>
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 64px;
+  }
+  .logo { width: 56px; height: 56px; margin-bottom: 28px; }
+  h1 {
+    font-size: 64px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: var(--brand-primary);
+    line-height: 1.1;
+  }
+  .tag {
+    margin-top: 22px;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--ink);
+    max-width: 900px;
+    line-height: 1.4;
+  }
+  .thanks {
+    margin-top: 12px;
+    font-size: 18px;
+    color: var(--body);
+  }
+  .pill {
+    margin-top: 40px;
+    display: inline-flex;
+    align-items: center;
+    gap: 18px;
+    border: 1px solid var(--border);
+    background: #fff;
+    border-radius: 999px;
+    padding: 14px 28px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .pill span { display: inline-flex; align-items: center; gap: 8px; }
+  .pill svg { width: 18px; height: 18px; color: var(--brand-primary); }
+  .sep { width: 1px; height: 18px; background: #d1d5db; }
+</style>
+</head>
+<body>
+  <div class="slide-glow"></div>
+  <img class="logo" src="../assets/logo.svg" alt="ReBox">
+  <h1>ReBox Đã Sẵn Sàng!</h1>
+  <p class="tag">Kiến tạo chuẩn mực niềm tin mới cho thị trường đồ cũ Việt Nam.</p>
+  <p class="thanks">Xin chân thành cảm ơn Ban Giám Khảo.</p>
+  <div class="pill">
+    <span>
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg>
+      rebox.vn
+    </span>
+    <span class="sep"></span>
+    <span>
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="m4 7 8 6 8-6"/></svg>
+      contact@rebox.vn
+    </span>
+  </div>
+</body>
+</html>

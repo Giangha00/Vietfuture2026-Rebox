@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>P14 · Kế hoạch vốn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/tokens.css">
+<style>
+  body { padding: 64px; display: grid; grid-template-rows: auto 1fr; }
+  .split {
+    position: relative; z-index: 1;
+    display: grid;
+    grid-template-columns: 0.4fr 1fr;
+    gap: 56px;
+    align-items: center;
+  }
+  .metric { text-align: center; }
+  .metric .num { font-size: 108px; font-weight: 800; letter-spacing: -0.05em; color: var(--brand-primary); line-height: 1; }
+  .metric .lbl { margin-top: 14px; font-size: 22px; font-weight: 700; }
+  .lead { font-size: 18px; line-height: 1.6; color: var(--body); margin-bottom: 28px; }
+  .row { display: flex; gap: 14px; margin-bottom: 18px; }
+  .dot { width: 28px; height: 28px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; font-size: 12px; font-weight: 800; }
+  .row p { font-size: 17px; line-height: 1.55; color: var(--body); }
+  .row strong { color: var(--ink); }
+  .pct { color: var(--brand-primary); font-weight: 800; }
+</style>
+</head>
+<body>
+  <div class="slide-glow"></div>
+  <header class="slide-header">
+    <h1 class="slide-title">Kế Hoạch Vốn &amp; Cổ Phần</h1>
+  </header>
+  <div class="split">
+    <div class="metric">
+      <p class="num">$300K</p>
+      <p class="lbl">Nhu cầu vốn (Pre-Seed / Seed)</p>
+    </div>
+    <div>
+      <p class="lead">Runway <strong>18 tháng</strong> ở burn $12–15k/tháng. Đủ để beta ngách tech, khóa escrow, rồi mới mở take-rate.</p>
+      <div class="row">
+        <span class="dot">%</span>
+        <p><strong>Cổ phần chào bán:</strong> 10% – 15% tại valuation $2M – $3M.</p>
+      </div>
+      <div class="row">
+        <span class="dot">45</span>
+        <p><span class="pct">45%</span> — Product / Tech: escrow, AI tag, app + API, KYC.</p>
+      </div>
+      <div class="row">
+        <span class="dot">40</span>
+        <p><span class="pct">40%</span> — Growth: seeding listing, hội nhóm FB, referral.</p>
+      </div>
+      <div class="row">
+        <span class="dot">15</span>
+        <p><span class="pct">15%</span> — Operations &amp; dự phòng: 3PL, tranh chấp, legal.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

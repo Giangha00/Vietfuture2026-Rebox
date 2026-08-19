@@ -1,13 +1,25 @@
 const DEFAULT_BACKEND_URL = "http://localhost:5001";
+const BACKEND_PORT = "5001";
 
-export const REBOX_BACKEND_URL =
-  process.env.NEXT_PUBLIC_REBOX_BACKEND_URL || DEFAULT_BACKEND_URL;
+function getBackendUrl() {
+  const envUrl = process.env.NEXT_PUBLIC_REBOX_BACKEND_URL || DEFAULT_BACKEND_URL;
+  if (typeof window === "undefined") {
+    return envUrl;
+  }
+  const host = window.location.hostname;
+  if (host && host !== "localhost" && host !== "127.0.0.1") {
+    return `http://${host}:${BACKEND_PORT}`;
+  }
+  return envUrl;
+}
+
+export const REBOX_BACKEND_URL = getBackendUrl();
 
 export async function backendFetchJson(
   path,
   { method = "GET", token, body } = {},
 ) {
-  const url = `${REBOX_BACKEND_URL}${path.startsWith("/") ? path : `/${path}`}`;
+  const url = `${getBackendUrl()}${path.startsWith("/") ? path : `/${path}`}`;
   const headers = {};
   if (token) headers.Authorization = `Bearer ${token}`;
 
@@ -167,7 +179,7 @@ export async function backendUploadImages({ token, files }) {
   const formData = new FormData();
   list.forEach((file) => formData.append("images[]", file));
 
-  const url = `${REBOX_BACKEND_URL}/api/uploads`;
+  const url = `${getBackendUrl()}/api/uploads`;
   const res = await fetch(url, {
     method: "POST",
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,

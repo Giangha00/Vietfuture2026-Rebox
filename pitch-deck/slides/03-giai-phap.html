@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>P03 · Giải pháp từ ReBox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/tokens.css">
+<style>
+  body { padding: 64px; }
+  .grid { height: calc(1080px - 64px - 64px - 148px); }
+  .card { padding: 32px 28px; display: flex; flex-direction: column; border-top: 4px solid var(--brand-primary); }
+</style>
+</head>
+<body>
+  <div class="slide-glow"></div>
+  <header class="slide-header">
+    <h1 class="slide-title">Giải Pháp Từ ReBox</h1>
+    <p class="slide-sub">Kiến tạo một lớp hạ tầng tín nhiệm (Trust Layer) cho mọi giao dịch C2C — khớp đúng thứ khảo sát đòi hỏi: ảnh thật, mô tả tình trạng, kiểm định, hoàn tiền.</p>
+  </header>
+  <div class="grid-3 grid">
+    <article class="card">
+      <div class="icon-tile"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 3 6 14h6l-1 7 7-11h-6l1-7Z" stroke-linejoin="round"/></svg></div>
+      <h3 class="card-title">Giao dịch 1 chạm</h3>
+      <p class="card-body">Khảo sát: người bán mệt vì trả giá và tin nhắn ảo. ReBox chuẩn hóa <strong>Smart Offer + chốt đơn dứt khoát</strong> trên listing có schema (layout, switch, DPI…) — giảm vòng thương lượng.</p>
+    </article>
+    <article class="card">
+      <div class="icon-tile"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z" stroke-linejoin="round"/></svg></div>
+      <h3 class="card-title">Ví Escrow bảo chứng</h3>
+      <p class="card-body">Tiền người mua <strong>tạm giữ trên ReBox</strong> tới khi nhận hàng đúng mô tả. Đúng mô hình 3/10 người đã chọn: nền tảng giữ tiền, chỉ giải ngân khi giao dịch xong.</p>
+    </article>
+    <article class="card">
+      <div class="icon-tile"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="12" rx="2"/><path d="M8 7V5a4 4 0 0 1 8 0v2" stroke-linecap="round"/></svg></div>
+      <h3 class="card-title">Vận chuyển + ẩn danh</h3>
+      <p class="card-body">Courier lấy hàng tại seller, giao tận nơi. Không lộ SĐT trên hội nhóm. Đúng nỗi lo “gặp người không uy tín” — <strong>nền tảng đứng giữa</strong> thay vì inbox Facebook.</p>
+    </article>
+  </div>
+</body>
+</html>

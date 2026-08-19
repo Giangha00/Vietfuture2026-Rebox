@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>P08 · Quy mô thị trường</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/tokens.css">
+<style>
+  body { padding: 64px; display: grid; grid-template-rows: auto 1fr; }
+  .split {
+    position: relative; z-index: 1;
+    display: grid;
+    grid-template-columns: 0.42fr 1px 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+  .metric { text-align: center; }
+  .metric .num { font-size: 92px; font-weight: 800; letter-spacing: -0.04em; color: var(--brand-primary); line-height: 1; }
+  .metric .lbl { margin-top: 12px; font-size: 24px; font-weight: 700; }
+  .metric .cap { margin-top: 10px; font-size: 14px; color: var(--muted); }
+  .vline { background: #e5e7eb; height: 70%; align-self: center; }
+  .list .row { display: flex; gap: 14px; margin-bottom: 22px; }
+  .list .row:last-child { margin-bottom: 0; }
+  .dot { width: 28px; height: 28px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .dot svg { width: 14px; height: 14px; }
+  .list h3 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .list p { font-size: 16px; line-height: 1.55; color: var(--body); }
+</style>
+</head>
+<body>
+  <div class="slide-glow"></div>
+  <header class="slide-header">
+    <h1 class="slide-title">Quy Mô Thị Trường</h1>
+  </header>
+  <div class="split">
+    <div class="metric">
+      <p class="num">1.5 Tỷ</p>
+      <p class="lbl">USD (tại Việt Nam)</p>
+      <p class="cap">TAM đồ cũ / C2C — số trong hồ sơ gọi vốn</p>
+    </div>
+    <div class="vline"></div>
+    <div class="list">
+      <div class="row">
+        <span class="dot"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7" stroke-linecap="round"/></svg></span>
+        <div>
+          <h3>Nhu cầu đã có, niềm tin thì chưa</h3>
+          <p>9/10 từng mua đồ cũ. Kênh rải trên Facebook, bạn bè, Shopee — không ai cầm lớp escrow.</p>
+        </div>
+      </div>
+      <div class="row">
+        <span class="dot"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7" stroke-linecap="round"/></svg></span>
+        <div>
+          <h3>Wedge: phụ kiện công nghệ</h3>
+          <p>Q18: 5/10 muốn tập trung tech. ReBox mở bằng Keyboards / Mice / Monitors — AOV cao, dễ schema, dễ kiểm định.</p>
+        </div>
+      </div>
+      <div class="row">
+        <span class="dot"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7" stroke-linecap="round"/></svg></span>
+        <div>
+          <h3>Escrow là việc chưa ai làm cho C2C cá nhân</h3>
+          <p>Shopee làm cho shop. Facebook không giữ tiền. ReBox lấp đúng lỗ đó.</p>
+        </div>
+      </div>
+      <div class="row">
+        <span class="dot"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7" stroke-linecap="round"/></svg></span>
+        <div>
+          <h3>Sẵn sàng thử</h3>
+          <p>8/10 “có thể sử dụng” nền tảng kiểu ReBox. Điểm tin dùng lâu: kiểm định + tranh chấp + mô tả thật.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

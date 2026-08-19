@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>P05 · Catalog theo category</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/tokens.css">
+<style>
+  body { padding: 56px 64px 48px; }
+  .grid { margin-top: 28px; height: calc(1080px - 56px - 48px - 128px); align-items: stretch; }
+  .col { padding: 22px; display: flex; flex-direction: column; min-height: 0; }
+  .col-h { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .col-h h3 { font-size: 22px; font-weight: 700; }
+  .item { display: grid; grid-template-columns: 96px 1fr; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid #eef2f6; }
+  .item:first-of-type { border-top: 0; padding-top: 0; }
+  .thumb { width: 96px; height: 96px; border-radius: 14px; overflow: hidden; background: #f5f5f4; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .item h4 { font-size: 15px; font-weight: 700; line-height: 1.3; }
+  .item .meta { margin-top: 4px; font-size: 13px; color: var(--muted); }
+  .item .price { margin-top: 6px; font-size: 16px; font-weight: 800; color: var(--brand-primary); }
+</style>
+</head>
+<body>
+  <div class="slide-glow"></div>
+  <header class="slide-header">
+    <h1 class="slide-title">Danh Mục Đang Chạy — Ảnh Catalog Thật</h1>
+    <p class="slide-sub">Niche-first đúng khảo sát (5/10 muốn “phụ kiện &amp; thiết bị công nghệ”). Ảnh từ seed backend; seller/quận fictional hóa theo persona SV và nhân viên văn phòng.</p>
+  </header>
+  <div class="grid-3 grid">
+    <section class="card col">
+      <div class="col-h">
+        <div class="icon-tile"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="10" rx="2"/><path d="M7 8V6h10v2" stroke-linecap="round"/></svg></div>
+        <h3>Keyboards</h3>
+      </div>
+      <div class="item">
+        <div class="thumb"><img src="../assets/products/keyboard-custom-65.jpg" alt=""></div>
+        <div>
+          <h4>Keychron K2 V2 Brown · 98%</h4>
+          <p class="meta">Like New · Minh Trần · Q.1, HCM</p>
+          <p class="price">$79</p>
+        </div>
+      </div>
+      <div class="item">
+        <div class="thumb"><img src="../assets/products/keyboard-designer.jpg" alt=""></div>
+        <div>
+          <h4>Akko 3068B Plus Hot-swap</h4>
+          <p class="meta">Good · Hà Lê · Cầu Giấy</p>
+          <p class="price">$69</p>
+        </div>
+      </div>
+      <div class="item">
+        <div class="thumb"><img src="../assets/products/keyboard-rgb-blue.jpg" alt=""></div>
+        <div>
+          <h4>Logitech G Pro X TKL</h4>
+          <p class="meta">Good · An Bùi · Hai Bà Trưng</p>
+          <p class="price">$115</p>
+        </div>
+      </div>
+    </section>
+    <section class="card col">
+      <div class="col-h">
+        <div class="icon-tile"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="5" y="9" width="14" height="10" rx="5"/><path d="M12 8v8" stroke-linecap="round"/></svg></div>
+        <h3>Mice</h3>
+      </div>
+      <div class="item">
+        <div class="thumb"><img src="../assets/products/mouse-logitech-white.jpg" alt=""></div>
+        <div>
+          <h4>Logitech G Pro X Superlight</h4>
+          <p class="meta">Like New · Lan Nguyễn · Q.3, HCM</p>
+          <p class="price">$110</p>
+        </div>
+      </div>
+      <div class="item">
+        <div class="thumb"><img src="../assets/products/mouse-honeycomb.jpg" alt=""></div>
+        <div>
+          <h4>Razer Viper V2 Pro</h4>
+          <p class="meta">Good · Đức Phạm · Đống Đa</p>
+          <p class="price">$125</p>
+        </div>
+      </div>
+      <div class="item">
+        <div class="thumb"><img src="../assets/products/mouse-logitech-g.jpg" alt=""></div>
+        <div>
+          <h4>Logitech MX Master 3S</h4>
+          <p class="meta">Like New · Khoa Vũ · Tân Bình</p>
+          <p class="price">$85</p>
+        </div>
+      </div>
+    </section>
+    <section class="card col">
+      <div class="col-h">
+        <div class="icon-tile"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4" stroke-linecap="round"/></svg></div>
+        <h3>Monitors</h3>
+      </div>
+      <div class="item">
+        <div class="thumb"><img src="../assets/products/monitor-lg.jpg" alt=""></div>
+        <div>
+          <h4>LG UltraGear 27" 165Hz</h4>
+          <p class="meta">Like New · Khoa Vũ · Tân Bình</p>
+          <p class="price">$220</p>
+        </div>
+      </div>
+      <div class="item">
+        <div class="thumb"><img src="../assets/products/monitor-gaming.jpg" alt=""></div>
+        <div>
+          <h4>Samsung Odyssey G5 27"</h4>
+          <p class="meta">Good · An Bùi · Hai Bà Trưng</p>
+          <p class="price">$195</p>
+        </div>
+      </div>
+      <div class="item">
+        <div class="thumb"><img src="../assets/products/monitor-workstation.jpg" alt=""></div>
+        <div>
+          <h4>Dell S2721DGF 27" 165Hz</h4>
+          <p class="meta">Like New · Minh Trần · Q.1, HCM</p>
+          <p class="price">$240</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
